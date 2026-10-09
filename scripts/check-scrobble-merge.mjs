@@ -1,3 +1,5 @@
+// Plain JavaScript cannot declare TypeScript return types.
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 // Run with: node scripts/check-scrobble-merge.mjs
 // Exercise the actual hook callback bodies without React or backend dependencies.
 import assert from 'node:assert/strict';
@@ -18,7 +20,10 @@ const callbackBody = (name) => {
 };
 
 const helpers = source
-    .slice(source.indexOf('const getScrobbleMediaType ='), source.indexOf('export const useScrobble ='))
+    .slice(
+        source.indexOf('const getScrobbleMediaType ='),
+        source.indexOf('export const useScrobble ='),
+    )
     .replaceAll('song?: QueueSong', 'song')
     .replaceAll('song: QueueSong', 'song')
     .replaceAll('hasSubmitted: boolean', 'hasSubmitted')
@@ -26,41 +31,72 @@ const helpers = source
     .replaceAll(": 'podcast' | 'song'", '');
 
 const song = (type, extra = {}) => ({
-    _itemType: 'song', _serverId: 'server', _serverType: type,
-    _uniqueId: 'old', albumId: 'album', duration: 180000, id: 'old', ...extra,
+    _itemType: 'song',
+    _serverId: 'server',
+    _serverType: type,
+    _uniqueId: 'old',
+    albumId: 'album',
+    duration: 180000,
+    id: 'old',
+    ...extra,
 });
 
-function run(type, { submitted = false, resumable = false, sameItem = false } = {}) {
+function run(type, { resumable = false, sameItem = false, submitted = false } = {}) {
     const events = [];
     const previousSong = song(type, { isResumable: resumable });
-    const currentSong = song(type, { _uniqueId: sameItem ? 'old' : 'new', id: 'new', isResumable: resumable });
+    const currentSong = song(type, {
+        _uniqueId: sameItem ? 'old' : 'new',
+        id: 'new',
+        isResumable: resumable,
+    });
     const context = {
-        ServerType: { JELLYFIN: 'jellyfin', PLEX: 'plex' },
-        ServerFeature: { REPORT_PLAYBACK: 'report' },
-        PlayerStatus: { PLAYING: 'playing' },
-        getServerById: () => ({}), hasFeature: () => false,
-        usePlayerStore: { getState: () => ({ getCurrentSong: () => currentSong, player: { status: 'playing' } }) },
-        isScrobbleEnabled: true, isPrivateModeEnabled: false, playbackRate: 1,
-        sendScrobble: { mutate: ({ query }) => events.push(query) },
-        scrobbleSettings: { notify: false },
-        logger: { info() {}, debug() {} }, flushScrobbleDebug() {},
-        clearTimeout() {}, setTimeout: (fn) => { fn(); return 1; },
         checkScrobbleConditions: () => false,
-        SCROBBLE_TRACK_BEGIN_SEC: 5, SCROBBLE_RESTART_PREVIOUS_MIN_SEC: 10, MAX_LISTEN_DELTA_SEC: 5,
-        properties: { timestamp: 20, song: currentSong }, prev: { timestamp: 19 },
+        clearTimeout: () => undefined,
+        flushScrobbleDebug: () => undefined,
+        getServerById: () => ({}),
+        hasFeature: () => false,
+        isPrivateModeEnabled: false,
+        isScrobbleEnabled: true,
+        logger: { debug: () => undefined, info: () => undefined },
+        MAX_LISTEN_DELTA_SEC: 5,
+        playbackRate: 1,
+        PlayerStatus: { PLAYING: 'playing' },
+        prev: { timestamp: 19 },
+        properties: { song: currentSong, timestamp: 20 },
+        SCROBBLE_RESTART_PREVIOUS_MIN_SEC: 10,
+        SCROBBLE_TRACK_BEGIN_SEC: 5,
+        scrobbleSettings: { notify: false },
+        sendScrobble: { mutate: ({ query }) => events.push(query) },
+        ServerFeature: { REPORT_PLAYBACK: 'report' },
+        ServerType: { JELLYFIN: 'jellyfin', PLEX: 'plex' },
+        setTimeout: (fn) => {
+            fn();
+            return 1;
+        },
+        usePlayerStore: {
+            getState: () => ({ getCurrentSong: () => currentSong, player: { status: 'playing' } }),
+        },
     };
     for (const [name, value] of Object.entries({
-        isCurrentSongScrobbledRef: submitted, listenedMsRef: 0, lastListenSampleTimeRef: 19,
-        lastProgressEventRef: 0, previousTimestampRef: 20, previousSongRef: previousSong,
-        stopPositionRef: 20, songChangeTimeoutRef: undefined,
-        minimumModeRef: 'both', scrobbleAtDurationMsRef: 30000, scrobbleAtPercentageRef: 75,
-    })) context[name] = { current: value };
+        isCurrentSongScrobbledRef: submitted,
+        lastListenSampleTimeRef: 19,
+        lastProgressEventRef: 0,
+        listenedMsRef: 0,
+        minimumModeRef: 'both',
+        previousSongRef: previousSong,
+        previousTimestampRef: 20,
+        scrobbleAtDurationMsRef: 30000,
+        scrobbleAtPercentageRef: 75,
+        songChangeTimeoutRef: undefined,
+        stopPositionRef: 20,
+    }))
+        context[name] = { current: value };
     vm.createContext(context);
     vm.runInContext(helpers, context);
     vm.runInContext(`(() => {${callbackBody('handleScrobbleFromProgress')} })()`, context);
     const progress = events.splice(0);
     vm.runInContext(`(() => {${callbackBody('handleScrobbleFromSongChange')} })()`, context);
-    return { progress, events };
+    return { events, progress };
 }
 
 for (const [type, resumable, submitted, expectedProgress, expectedEvents] of [
@@ -69,9 +105,13 @@ for (const [type, resumable, submitted, expectedProgress, expectedEvents] of [
     ['jellyfin', true, false, 1, ['stop', 'start']],
     ['jellyfin', false, false, 0, ['start']],
 ]) {
-    const { progress, events } = run(type, { resumable, submitted });
+    const { events, progress } = run(type, { resumable, submitted });
     assert.equal(progress.length, expectedProgress, `${type} progress`);
-    assert.deepEqual(events.map((query) => query.event), expectedEvents, `${type} song change`);
+    assert.deepEqual(
+        events.map((query) => query.event),
+        expectedEvents,
+        `${type} song change`,
+    );
     assert.equal(events.at(-1).duration, 180000);
     if (progress.length) {
         assert.equal(progress[0].position, type === 'plex' ? 20000 : 200000000);
@@ -82,5 +122,8 @@ for (const [type, resumable, submitted, expectedProgress, expectedEvents] of [
         assert.equal(events[0].position, type === 'plex' ? 20000 : 200000000);
     }
 }
-assert.deepEqual(run('plex', { sameItem: true }).events.map((query) => query.event), ['start']);
+assert.deepEqual(
+    run('plex', { sameItem: true }).events.map((query) => query.event),
+    ['start'],
+);
 console.log('Scrobble merge checks passed.');
