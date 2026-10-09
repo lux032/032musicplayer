@@ -54,14 +54,14 @@ of the track (position before SCROBBLE_TRACK_BEGIN_SEC), e.g. seek-to-start or
 restart-from-near-zero. Song change and repeat still reset for a new play-through.
 
 Jellyfin progress APIs still use playback position (ticks), not listen time:
-  - Periodic timeupdate while playing
+  - Periodic timeupdate while playing resumable media
   - timeupdate on seek
   - pause / unpause
 
 Other events:
-  - When the song changes: sends 'stop' for the previous non-Jellyfin track;
-    sends 'start' when the new track is playing; clears submission flag and
-    listen accumulator for the new track.
+  - When the song changes: sends 'stop' for the previous track (not on Jellyfin
+    unless the song is resumable); sends 'start' when the new track is playing;
+    clears submission flag and listen accumulator for the new track.
 
   - When the song is restarted (near 0 after 10s+): clears submission flag
     and listen accumulator.
@@ -347,8 +347,12 @@ export const useScrobble = () => {
                 }
             }
 
-            // Send playback progress events every 10 seconds for servers that support state sync.
-            if (shouldReportPlaybackState(currentSong, isCurrentSongScrobbledRef.current)) {
+            // Send progress every 10 seconds for Jellyfin resumable media and other
+            // servers that support playback state sync.
+            if (
+                shouldReportPlaybackState(currentSong, isCurrentSongScrobbledRef.current) &&
+                (currentSong._serverType !== ServerType.JELLYFIN || currentSong.isResumable)
+            ) {
                 const timeSinceLastProgress = currentTime - lastProgressEventRef.current;
                 if (timeSinceLastProgress >= 10) {
                     sendScrobble.mutate(
@@ -484,36 +488,12 @@ export const useScrobble = () => {
             songChangeTimeoutRef.current = setTimeout(() => {
                 const currentStatus = usePlayerStore.getState().player.status;
 
-                // Send start scrobble when song changes and the new song is playing
-                if (currentStatus === PlayerStatus.PLAYING && currentSong?.id) {
-                    sendScrobble.mutate(
-                        {
-                            apiClientProps: { serverId: currentSong._serverId || '' },
-                            query: {
-                                albumId: currentSong.albumId,
-                                duration: currentSong.duration,
-                                event: 'start',
-                                id: currentSong.id,
-                                mediaType,
-                                playbackRate,
-                                position: 0,
-                                submission: false,
-                            },
-                        },
-                        {
-                            onSuccess: () => {
-                                logger.info('Scrobbled a start event', {
-                                    id: currentSong.id,
-                                });
-                            },
-                        },
-                    );
-                }
+                // Jellyfin only needs a stop event on song change for resumable media.
+                const skipStopScrobble =
+                    previousSong?._serverType === ServerType.JELLYFIN && !previousSong.isResumable;
 
-                // Send stop scrobble for the track that was playing before the change
-                // Jellyfin does not need a stop event when advancing to another song.
-                const skipStopScrobble = previousSong?._serverType === ServerType.JELLYFIN;
-
+                // Send stop first to avoid Jellyfin clearing the new song's now-playing report.
+                // Keep Plex's completed-session guard and avoid stopping the same queue item.
                 if (
                     previousSong?.id &&
                     previousSong._uniqueId !== currentSong?._uniqueId &&
@@ -546,6 +526,32 @@ export const useScrobble = () => {
                         },
                     );
                 }
+
+                // Send start scrobble when song changes and the new song is playing
+                if (currentStatus === PlayerStatus.PLAYING && currentSong?.id) {
+                    sendScrobble.mutate(
+                        {
+                            apiClientProps: { serverId: currentSong._serverId || '' },
+                            query: {
+                                albumId: currentSong.albumId,
+                                duration: currentSong.duration,
+                                event: 'start',
+                                id: currentSong.id,
+                                mediaType,
+                                playbackRate,
+                                position: 0,
+                                submission: false,
+                            },
+                        },
+                        {
+                            onSuccess: () => {
+                                logger.info('Scrobbled a start event', {
+                                    id: currentSong.id,
+                                });
+                            },
+                        },
+                    );
+                }
             }, 2000);
 
             previousSongRef.current = currentSong;
@@ -564,8 +570,7 @@ export const useScrobble = () => {
     );
 
     const handleScrobbleFromSeek = useCallback(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        (properties: { timestamp: number }, _prev: { timestamp: number }) => {
+        (properties: { timestamp: number }) => {
             if (!isScrobbleEnabled || isPrivateModeEnabled) {
                 return;
             }

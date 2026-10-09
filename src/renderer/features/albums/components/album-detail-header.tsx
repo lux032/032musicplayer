@@ -134,7 +134,7 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
             album.originalDate && album.originalDate !== album.releaseDate;
 
         const originalYearDifferentFromRelease =
-            album.originalYear > 0 &&
+            album.originalYear &&
             album.releaseYear != null &&
             album.originalYear !== album.releaseYear;
 
@@ -154,7 +154,7 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
                 id: 'originalDate',
                 value: `${formatPartialIsoDateUTC(album.originalDate)}`,
             });
-        } else if (album.originalYear > 0 && originalYearDifferentFromRelease) {
+        } else if (album.originalYear && originalYearDifferentFromRelease) {
             items.push({
                 id: 'originalYear',
                 value: `${album.originalYear}`,

@@ -16,6 +16,7 @@ import { CollapsedSidebarItem } from '/@/renderer/features/sidebar/components/co
 import { ServerSelectorItems } from '/@/renderer/features/sidebar/components/server-selector-items';
 import { getCollectionTo } from '/@/renderer/features/sidebar/components/sidebar-collection-list';
 import { SidebarIcon } from '/@/renderer/features/sidebar/components/sidebar-icon';
+import { CollapsedSidebarPlaylistList } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
 import { AppMenu } from '/@/renderer/features/titlebar/components/app-menu';
 import { AppRoute } from '/@/renderer/router/routes';
 import {
@@ -24,6 +25,7 @@ import {
     useCurrentServer,
     useSidebarCollapsedNavigation,
     useSidebarItems,
+    useSidebarPlaylistList,
     useWindowSettings,
 } from '/@/renderer/store';
 import { DropdownMenu } from '/@/shared/components/dropdown-menu/dropdown-menu';
@@ -43,6 +45,7 @@ export const CollapsedSidebar = () => {
     const sidebarCollapsedNavigation = useSidebarCollapsedNavigation();
     const sidebarItems = useSidebarItems();
     const currentServer = useCurrentServer();
+    const sidebarPlaylistList = useSidebarPlaylistList();
     const { isScanning } = useScanStatus();
 
     const translatedSidebarItemMap = useMemo(
@@ -181,6 +184,7 @@ export const CollapsedSidebar = () => {
                         />
                     ),
                 )}
+                {sidebarPlaylistList && <CollapsedSidebarPlaylistList />}
                 {currentServer && (
                     <DropdownMenu offset={0} position="right-end" width={240}>
                         <DropdownMenu.Target>
