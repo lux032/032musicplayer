@@ -8,6 +8,7 @@ import { AlbumInfiniteFeatureCarousel } from '/@/renderer/features/home/componen
 import { AlbumInfiniteSingleFeatureCarousel } from '/@/renderer/features/home/components/album-infinite-single-feature-carousel';
 import { FeaturedGenres } from '/@/renderer/features/home/components/featured-genres';
 import { PlaylistInfiniteCarousel } from '/@/renderer/features/home/components/playlist-infinite-carousel';
+import { Music032HomeRoute } from '/@/renderer/features/home/music032/music032-home-route';
 import { AnimatedPage } from '/@/renderer/features/shared/components/animated-page';
 import { LibraryContainer } from '/@/renderer/features/shared/components/library-container';
 import { LibraryHeaderBar } from '/@/renderer/features/shared/components/library-header-bar';
@@ -33,7 +34,7 @@ import {
 } from '/@/shared/types/domain-types';
 import { Platform } from '/@/shared/types/types';
 
-const HomeRoute = () => {
+const DefaultHomeContent = () => {
     const { t } = useTranslation();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const server = useCurrentServer();
@@ -182,6 +183,18 @@ const HomeRoute = () => {
             </NativeScrollArea>
         </AnimatedPage>
     );
+};
+
+const HomeRoute = () => {
+    const server = useCurrentServer();
+
+    // 032 服务端：按 032 网页主页的设计渲染；后端没有主页接口时由
+    // Music032HomeRoute 内部回退到下面的默认主页。
+    if (server?.type === ServerType.MUSIC032) {
+        return <Music032HomeRoute fallback={<DefaultHomeContent />} />;
+    }
+
+    return <DefaultHomeContent />;
 };
 
 const HomeRouteWithBoundary = () => {
