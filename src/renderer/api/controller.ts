@@ -1,5 +1,6 @@
 import i18n from '/@/i18n/i18n';
 import { JellyfinController } from '/@/renderer/api/jellyfin/jellyfin-controller';
+import { Music032Controller } from '/@/renderer/api/music032/music032-controller';
 import { NavidromeController } from '/@/renderer/api/navidrome/navidrome-controller';
 import { PlexController } from '/@/renderer/api/plex/plex-controller';
 import { SubsonicController } from '/@/renderer/api/subsonic/subsonic-controller';
@@ -17,6 +18,7 @@ import {
 
 type ApiController = {
     jellyfin: InternalControllerEndpoint;
+    music032: InternalControllerEndpoint;
     navidrome: InternalControllerEndpoint;
     plex: InternalControllerEndpoint;
     subsonic: InternalControllerEndpoint;
@@ -24,6 +26,7 @@ type ApiController = {
 
 const endpoints: ApiController = {
     jellyfin: JellyfinController,
+    music032: Music032Controller,
     navidrome: NavidromeController,
     plex: PlexController,
     subsonic: SubsonicController,

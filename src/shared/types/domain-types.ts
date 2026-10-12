@@ -43,6 +43,7 @@ export enum LibraryItem {
 
 export enum ServerType {
     JELLYFIN = 'jellyfin',
+    MUSIC032 = 'music032',
     NAVIDROME = 'navidrome',
     PLEX = 'plex',
     SUBSONIC = 'subsonic',
@@ -113,6 +114,8 @@ export type ServerListItem = {
 
 export type ServerListItemWithCredential = ServerListItem & {
     credential: string;
+    /** 032 Music Server media token, appended to stream/artwork URLs. */
+    mediaToken?: string;
     ndCredential?: string;
 };
 
@@ -273,6 +276,7 @@ export type Artist = Omit<AlbumArtist, '_itemType'> & {
 export type AuthenticationResponse = {
     credential: string;
     isAdmin?: boolean;
+    mediaToken?: string;
     ndCredential?: string;
     userId: null | string;
     username: string;
