@@ -8,7 +8,11 @@ import {
     Music032ApiError,
 } from '/@/renderer/api/music032/music032-api';
 import { logger } from '/@/renderer/utils/logger';
-import { m032MediaUrl, m032Normalize } from '/@/shared/api/music032/music032-normalize';
+import {
+    M032Context,
+    m032MediaUrl,
+    m032Normalize,
+} from '/@/shared/api/music032/music032-normalize';
 import {
     M032Album,
     M032AlbumDetail,
@@ -22,7 +26,9 @@ import {
     M032SimilarTrack,
     M032Track,
 } from '/@/shared/api/music032/music032-types';
+import { sortAlbumList, sortSongList } from '/@/shared/api/utils';
 import {
+    Album,
     AlbumArtistListSort,
     AlbumListSort,
     ArtistListSort,
@@ -31,6 +37,7 @@ import {
     Playlist,
     PlaylistListSort,
     ServerListItemWithCredential,
+    Song,
     SongListSort,
     SortOrder,
 } from '/@/shared/types/domain-types';
@@ -138,7 +145,6 @@ const albumQuery = (query: {
     sortBy?: AlbumListSort;
 }) => ({
     artist: first(query.artistIds),
-    favorite: query.favorite ? 'true' : undefined,
     genre: first(query.genreIds),
     q: query.searchTerm || undefined,
     sort: query.sortBy ? ALBUM_SORT[query.sortBy] : undefined,
@@ -157,7 +163,6 @@ const songQuery = (query: {
     sortBy?: SongListSort;
 }) => ({
     artist: first(query.artistIds) ?? first(query.albumArtistIds),
-    favorite: query.favorite ? 'true' : undefined,
     genre: first(query.genreIds),
     q: query.searchTerm || undefined,
     sort: query.sortBy ? SONG_SORT[query.sortBy] : undefined,
@@ -174,6 +179,97 @@ const artistQuery = (
     role,
     sort: query.sortBy ? ARTIST_SORT[query.sortBy as AlbumArtistListSort] : undefined,
 });
+
+const sliceFor = <T>(items: T[], startIndex: number, limit?: number) =>
+    items.slice(startIndex, limit === undefined || limit < 0 ? undefined : startIndex + limit);
+
+const matchesText = (needle: string | undefined, ...haystack: (null | string | undefined)[]) => {
+    if (!needle) return true;
+    const n = needle.toLocaleLowerCase();
+    return haystack.some((h) => h?.toLocaleLowerCase().includes(n));
+};
+
+const hasGenre = (genres: { name: string }[], genre?: string) =>
+    !genre || genres.some((g) => g.name.toLocaleLowerCase() === genre.toLocaleLowerCase());
+
+const inYearRange = (year: null | number, minYear?: number, maxYear?: number) =>
+    (!minYear || (year ?? 0) >= minYear) && (!maxYear || (year ?? 0) <= maxYear);
+
+// 032's /albums and /tracks silently ignore favorite=true (only /artists
+// honours it), so favorite views read /favorites/*. Those endpoints only page,
+// so filters, sorting and paging are applied here; favorite sets are small.
+const favoriteAlbums = async (
+    client: M032ApiClient,
+    ctx: M032Context,
+    query: {
+        artistIds?: string[];
+        genreIds?: string[];
+        maxYear?: number;
+        minYear?: number;
+        searchTerm?: string;
+        sortBy?: AlbumListSort;
+        sortOrder?: SortOrder;
+    },
+): Promise<Album[]> => {
+    let items = (await fetchAll<M032Album>(client, '/favorites/albums')).map((item) =>
+        m032Normalize.album(ctx, item),
+    );
+    const artistId = first(query.artistIds);
+    if (artistId) {
+        const ids = new Set(
+            (await fetchAll<M032Album>(client, '/albums', { artist: artistId })).map((a) =>
+                String(a.id),
+            ),
+        );
+        items = items.filter((a) => ids.has(a.id));
+    }
+    items = items.filter(
+        (a) =>
+            hasGenre(a.genres, first(query.genreIds)) &&
+            inYearRange(a.releaseYear, query.minYear, query.maxYear) &&
+            matchesText(query.searchTerm, a.name, a.albumArtistName),
+    );
+    return query.sortBy
+        ? sortAlbumList(items, query.sortBy, query.sortOrder ?? SortOrder.ASC)
+        : items;
+};
+
+const favoriteSongs = async (
+    client: M032ApiClient,
+    ctx: M032Context,
+    query: {
+        albumArtistIds?: string[];
+        albumIds?: string[];
+        artistIds?: string[];
+        genreIds?: string[];
+        maxYear?: number;
+        minYear?: number;
+        searchTerm?: string;
+        sortBy?: SongListSort;
+        sortOrder?: SortOrder;
+    },
+): Promise<Song[]> => {
+    const albumIds = query.albumIds?.length ? new Set(query.albumIds) : null;
+    const artistId = first(query.artistIds) ?? first(query.albumArtistIds);
+    const items = (await fetchAll<M032Track>(client, '/favorites/tracks'))
+        .map((item) => m032Normalize.song(ctx, item))
+        .filter(
+            (s) =>
+                (!albumIds || albumIds.has(s.albumId)) &&
+                (!artistId ||
+                    [
+                        ...s.artists,
+                        ...s.albumArtists,
+                        ...Object.values(s.participants ?? {}).flat(),
+                    ].some((a) => a.id === artistId)) &&
+                hasGenre(s.genres, first(query.genreIds)) &&
+                inYearRange(s.releaseYear, query.minYear, query.maxYear) &&
+                matchesText(query.searchTerm, s.name, s.album, s.artistName),
+        );
+    return query.sortBy
+        ? sortSongList(items, query.sortBy, query.sortOrder ?? SortOrder.ASC)
+        : items;
+};
 
 const getPlaylistDetail = (client: M032ApiClient, id: string) =>
     client.get<M032PlaylistDetail>(`/playlists/${id}`);
@@ -428,6 +524,14 @@ export const Music032Controller: InternalControllerEndpoint = {
 
     getAlbumList: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
+        if (query.favorite) {
+            const all = await favoriteAlbums(m032ApiClient(apiClientProps), ctx, query);
+            return {
+                items: sliceFor(all, query.startIndex, query.limit),
+                startIndex: query.startIndex,
+                totalRecordCount: all.length,
+            };
+        }
         const { items, total } = await fetchPage<M032Album>(
             m032ApiClient(apiClientProps),
             '/albums',
@@ -443,7 +547,15 @@ export const Music032Controller: InternalControllerEndpoint = {
     },
 
     getAlbumListCount: async ({ apiClientProps, query }) =>
-        countOf(m032ApiClient(apiClientProps), '/albums', albumQuery(query)),
+        query.favorite
+            ? (
+                  await favoriteAlbums(
+                      m032ApiClient(apiClientProps),
+                      m032Context(apiClientProps.server),
+                      query,
+                  )
+              ).length
+            : countOf(m032ApiClient(apiClientProps), '/albums', albumQuery(query)),
 
     getAlbumRadio: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
@@ -490,18 +602,15 @@ export const Music032Controller: InternalControllerEndpoint = {
         m032MediaUrl(m032Context(apiClientProps.server), `/api/v1/tracks/${query.id}/stream`) || '',
 
     getFavoriteSongs: async ({ apiClientProps, query }) => {
-        const ctx = m032Context(apiClientProps.server);
-        const { items, total } = await fetchPage<M032Track>(
+        const all = await favoriteSongs(
             m032ApiClient(apiClientProps),
-            '/tracks',
-            { artist: query.artistId || undefined, favorite: 'true' },
-            0,
-            query.limit ?? -1,
+            m032Context(apiClientProps.server),
+            { artistIds: query.artistId ? [query.artistId] : undefined },
         );
         return {
-            items: items.map((item) => m032Normalize.song(ctx, item)),
+            items: sliceFor(all, 0, query.limit),
             startIndex: 0,
-            totalRecordCount: total,
+            totalRecordCount: all.length,
         };
     },
 
@@ -679,6 +788,15 @@ export const Music032Controller: InternalControllerEndpoint = {
         const client = m032ApiClient(apiClientProps);
         const base = songQuery(query);
 
+        if (query.favorite) {
+            const all = await favoriteSongs(client, ctx, query);
+            return {
+                items: sliceFor(all, query.startIndex, query.limit),
+                startIndex: query.startIndex,
+                totalRecordCount: all.length,
+            };
+        }
+
         // 032 filters a single album per request; feishin asks for several when
         // playing an artist's whole discography.
         if (query.albumIds && query.albumIds.length > 1) {
@@ -714,7 +832,7 @@ export const Music032Controller: InternalControllerEndpoint = {
     },
 
     getSongListCount: async ({ apiClientProps, query }) => {
-        if (query.albumIds && query.albumIds.length > 1) {
+        if (query.favorite || (query.albumIds && query.albumIds.length > 1)) {
             const res = await Music032Controller.getSongList({
                 apiClientProps,
                 query: { ...query, limit: -1, startIndex: 0 },
