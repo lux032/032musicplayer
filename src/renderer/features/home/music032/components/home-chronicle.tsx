@@ -14,6 +14,7 @@ import {
     HomeSectionError,
 } from '/@/renderer/features/home/music032/components/home-section';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
+import { FILTER_KEYS } from '/@/renderer/features/shared/utils';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
@@ -122,7 +123,13 @@ export const HomeChronicle = ({ chronicle }: { chronicle: M032HomeChronicle }) =
                             {t('page.home.music032.albumCount', { count: result.total })}
                         </span>
                         <div className={styles.sectionTools}>
-                            <Link className={styles.sectionLink} to={AppRoute.LIBRARY_ALBUMS}>
+                            <Link
+                                className={styles.sectionLink}
+                                to={
+                                    // 032 专辑列表只支持单年精确筛选，min=max 即单年
+                                    `${AppRoute.LIBRARY_ALBUMS}?${FILTER_KEYS.ALBUM.MIN_YEAR}=${result.year}&${FILTER_KEYS.ALBUM.MAX_YEAR}=${result.year}`
+                                }
+                            >
                                 {t('page.home.music032.viewAll')}
                                 <Icon icon="arrowRightS" />
                             </Link>
