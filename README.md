@@ -1,8 +1,10 @@
 <img src="assets/icons/icon.png" alt="logo" title="feishin" align="right" height="60px" width="60px" />
 
-# Feishin
+# 032musicplayer
 
-> **This is a fork of [Feishin](https://github.com/jeffvli/feishin) with added Plex Media Server support.**
+> **032musicplayer is a desktop client for 032 Music Server, built on [Feishin](https://github.com/jeffvli/feishin) (GPL-3.0).**
+> 本项目基于 Feishin 二次开发，在其 Plex 分支的基础上增加了 032 Music Server 支持，并沿用 Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect 输出）。
+> Feishin 原作者及贡献者的版权与 GPL-3.0 许可证保持不变，见 [LICENSE](LICENSE)。
 
   <p align="center">
     <a href="https://github.com/jeffvli/feishin/blob/main/LICENSE">

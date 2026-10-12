@@ -1,5 +1,5 @@
-appId: org.jeffvli.feishin
-productName: Feishin-plex
+appId: org.lux032.musicplayer032
+productName: 032musicplayer
 artifactName: ${productName}-${version}-${os}-${arch}.${ext}
 electronVersion: 43.7.0
 directories:
@@ -72,6 +72,6 @@ afterAllArtifactBuild: scripts/after-all-artifact-build.mjs
 publish:
     provider: github
     owner: lux032
-    repo: feishin
+    repo: 032musicplayer
     channel: latest
     releaseType: draft

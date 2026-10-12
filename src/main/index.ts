@@ -37,7 +37,7 @@ import './features';
 import { hotkeyToElectronAccelerator } from './utils';
 
 import { disableAutoUpdates, isLinux, isMacOS, isWindows } from '/@/main/env';
-import { UPDATER_OWNER } from '/@/main/fork-config';
+import { APP_ID, AUTO_UPDATE_ENABLED, UPDATER_OWNER, UPDATER_REPO } from '/@/main/fork-config';
 import {
     clampWindowBoundsToDisplay,
     DEFAULT_WINDOW_BOUNDS,
@@ -60,7 +60,7 @@ const ALPHA_UPDATER_CONFIG: {
 const GITHUB_UPDATER_CONFIG = {
     owner: UPDATER_OWNER,
     provider: 'github' as const,
-    repo: 'feishin',
+    repo: UPDATER_REPO,
 };
 
 type UpdaterInstance = AppImageUpdater | MacUpdater | NsisUpdater | typeof autoUpdater;
@@ -856,7 +856,7 @@ async function createWindow(first = true): Promise<void> {
     });
 
     if (isWindows()) {
-        app.setAppUserModelId('org.jeffvli.feishin');
+        app.setAppUserModelId(APP_ID);
     }
 
     menuBuilder = new MenuBuilder(mainWindow, showMainWindow);
@@ -898,7 +898,11 @@ async function createWindow(first = true): Promise<void> {
             });
     });
 
-    if (!disableAutoUpdates() && store.get('disable_auto_updates') !== true) {
+    if (
+        AUTO_UPDATE_ENABLED &&
+        !disableAutoUpdates() &&
+        store.get('disable_auto_updates') !== true
+    ) {
         new AppUpdater();
     }
 
