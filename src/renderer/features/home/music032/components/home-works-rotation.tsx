@@ -11,8 +11,10 @@ import {
 } from '/@/renderer/features/home/music032/components/home-section';
 import { workRoleLabel, workTypeLabel } from '/@/renderer/features/home/music032/lib/format';
 import { openMusic032Work } from '/@/renderer/features/home/music032/lib/open-music032-web';
+import { useWorksPlayState } from '/@/renderer/features/home/music032/lib/playing-source';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
+import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { M032HomeWorkCard, M032RotationPage } from '/@/shared/api/music032/music032-types';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
@@ -132,6 +134,7 @@ export const HomeWorksRotation = ({ initial }: { initial: M032RotationPage<M032H
 const WorkCard = ({ onPlay, work }: { onPlay: () => void; work: M032HomeWorkCard }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
+    const playState = useWorksPlayState(server?.id, [work.id]);
 
     return (
         <article className={styles.workCard}>
@@ -143,6 +146,11 @@ const WorkCard = ({ onPlay, work }: { onPlay: () => void; work: M032HomeWorkCard
                         itemType={LibraryItem.ALBUM}
                         size={256}
                     />
+                )}
+                {playState && (
+                    <span className={styles.cardBadge}>
+                        <PlayingIndicator state={playState} />
+                    </span>
                 )}
                 <button
                     aria-label={t('player.play')}

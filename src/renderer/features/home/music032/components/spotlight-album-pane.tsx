@@ -16,6 +16,8 @@ import {
 import { audioSpecLabel, formatTrackDuration } from '/@/renderer/features/home/music032/lib/format';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
+import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
+import { useSongPlayState } from '/@/renderer/features/shared/components/playing-indicator/use-song-play-state';
 import { useSetFavorite } from '/@/renderer/features/shared/hooks/use-set-favorite';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { formatDateRelative } from '/@/renderer/utils/format';
@@ -24,7 +26,7 @@ import { M032HomeAlbumPane } from '/@/shared/api/music032/music032-types';
 import { Button } from '/@/shared/components/button/button';
 import { Icon } from '/@/shared/components/icon/icon';
 import { toast } from '/@/shared/components/toast/toast';
-import { LibraryItem } from '/@/shared/types/domain-types';
+import { LibraryItem, Song } from '/@/shared/types/domain-types';
 
 interface SpotlightAlbumPaneComponentProps extends SpotlightPaneProps {
     pane: M032HomeAlbumPane;
@@ -234,32 +236,12 @@ const SpotlightAlbumPaneInner = ({
                         </div>
                         <ol className={styles.heroTracks}>
                             {tracks.map((track, index) => (
-                                <li key={track.id}>
-                                    <button
-                                        aria-label={track.name}
-                                        className={styles.heroTrackRow}
-                                        onClick={() => playSongs(tracks, track.id)}
-                                        onContextMenu={(e) => {
-                                            e.preventDefault();
-                                            ContextMenuController.call({
-                                                cmd: { items: [track], type: LibraryItem.SONG },
-                                                event: e,
-                                            });
-                                        }}
-                                        type="button"
-                                    >
-                                        <span className={styles.no}>
-                                            {track.trackNumber || index + 1}
-                                        </span>
-                                        <span className={styles.t}>
-                                            <b title={track.name}>{track.name}</b>
-                                            <small>{track.artistName}</small>
-                                        </span>
-                                        <span className={styles.d}>
-                                            {formatTrackDuration(track.duration)}
-                                        </span>
-                                    </button>
-                                </li>
+                                <SpotlightTrackRow
+                                    index={index}
+                                    key={track.id}
+                                    onPlay={() => playSongs(tracks, track.id)}
+                                    track={track}
+                                />
                             ))}
                         </ol>
                         {albumPath && (
@@ -279,5 +261,49 @@ const SpotlightAlbumPaneInner = ({
                 )}
             </div>
         </section>
+    );
+};
+
+const SpotlightTrackRow = ({
+    index,
+    onPlay,
+    track,
+}: {
+    index: number;
+    onPlay: () => void;
+    track: Song;
+}) => {
+    const server = useCurrentServerWithCredential();
+    const playState = useSongPlayState(server?.id, track.id);
+
+    return (
+        <li className={playState ? styles.isCurrent : undefined}>
+            <button
+                aria-label={track.name}
+                className={styles.heroTrackRow}
+                onClick={onPlay}
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    ContextMenuController.call({
+                        cmd: { items: [track], type: LibraryItem.SONG },
+                        event: e,
+                    });
+                }}
+                type="button"
+            >
+                <span className={styles.no}>
+                    {playState ? (
+                        <PlayingIndicator state={playState} />
+                    ) : (
+                        track.trackNumber || index + 1
+                    )}
+                </span>
+                <span className={styles.t}>
+                    <b title={track.name}>{track.name}</b>
+                    <small>{track.artistName}</small>
+                </span>
+                <span className={styles.d}>{formatTrackDuration(track.duration)}</span>
+            </button>
+        </li>
     );
 };

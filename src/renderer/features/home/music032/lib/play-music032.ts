@@ -1,5 +1,6 @@
 import { m032Context } from '/@/renderer/api/music032/music032-api';
 import { fetchMusic032WorkTracks } from '/@/renderer/features/home/music032/api/music032-home-api';
+import { recordWorkTracks } from '/@/renderer/features/home/music032/lib/playing-source-map';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { ServerListItemWithCredential, Song } from '/@/shared/types/domain-types';
 
@@ -17,6 +18,11 @@ export const expandMusic032WorksToSongs = async (
 
     for (const workId of workIds) {
         const res = await fetchMusic032WorkTracks(server, workId);
+        // Remember the membership so work/series cards can show a playing badge.
+        recordWorkTracks(
+            workId,
+            res.items.map((track) => track.id),
+        );
         for (const track of res.items) {
             if (seen.has(track.id)) continue;
             seen.add(track.id);

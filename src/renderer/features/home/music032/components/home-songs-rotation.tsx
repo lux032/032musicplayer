@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -20,6 +21,8 @@ import { openMusic032Work } from '/@/renderer/features/home/music032/lib/open-mu
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
+import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
+import { useSongPlayState } from '/@/renderer/features/shared/components/playing-indicator/use-song-play-state';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
@@ -106,13 +109,15 @@ const SongRowItem = ({ row }: { row: M032HomeSongRow }) => {
         [row.track, server],
     );
 
+    const playState = useSongPlayState(server?.id, song.id);
+
     const appendToQueue = () => {
         player.addToQueueByData([song], Play.LAST);
     };
 
     return (
         <article
-            className={styles.songRow}
+            className={clsx(styles.songRow, playState && styles.isCurrent)}
             onContextMenu={(e) => {
                 e.preventDefault();
                 ContextMenuController.call({
@@ -138,7 +143,7 @@ const SongRowItem = ({ row }: { row: M032HomeSongRow }) => {
                     <span>032</span>
                 )}
                 <span className={styles.rowArtPlay}>
-                    <Icon icon="mediaPlay" />
+                    {playState ? <PlayingIndicator state={playState} /> : <Icon icon="mediaPlay" />}
                 </span>
             </button>
             <div className={styles.rowMain}>

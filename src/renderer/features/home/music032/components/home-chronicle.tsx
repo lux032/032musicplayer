@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { m032Context } from '/@/renderer/api/music032/music032-api';
-import { DataRow, MemoizedItemCard } from '/@/renderer/components/item-card/item-card';
+import { DataRow } from '/@/renderer/components/item-card/item-card';
 import { useDefaultItemListControls } from '/@/renderer/components/item-list/helpers/item-list-controls';
 import { music032HomeQueries } from '/@/renderer/features/home/music032/api/music032-home-api';
+import { HomeAlbumCard } from '/@/renderer/features/home/music032/components/home-album-card';
 import {
     HomeInlineEmpty,
     HomeSection,
@@ -18,7 +19,7 @@ import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { M032HomeChronicle } from '/@/shared/api/music032/music032-types';
 import { Icon } from '/@/shared/components/icon/icon';
-import { Album, LibraryItem } from '/@/shared/types/domain-types';
+import { Album } from '/@/shared/types/domain-types';
 
 /** 编年：按发行年份的柱状图，点击柱子切换那一年入库的专辑。 */
 export const HomeChronicle = ({ chronicle }: { chronicle: M032HomeChronicle }) => {
@@ -129,17 +130,11 @@ export const HomeChronicle = ({ chronicle }: { chronicle: M032HomeChronicle }) =
                     </div>
                     <div className={styles.shelf}>
                         {items.map((album) => (
-                            <MemoizedItemCard
+                            <HomeAlbumCard
+                                album={album}
                                 controls={controls}
-                                data={album}
-                                enableDrag={false}
-                                enableExpansion={false}
-                                imageFetchPriority="low"
-                                itemType={LibraryItem.ALBUM}
                                 key={album.id}
                                 rows={rows}
-                                type="poster"
-                                withControls
                             />
                         ))}
                     </div>

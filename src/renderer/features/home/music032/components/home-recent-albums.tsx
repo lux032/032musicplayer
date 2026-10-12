@@ -3,8 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { m032Context } from '/@/renderer/api/music032/music032-api';
-import { DataRow, MemoizedItemCard } from '/@/renderer/components/item-card/item-card';
+import { DataRow } from '/@/renderer/components/item-card/item-card';
 import { useDefaultItemListControls } from '/@/renderer/components/item-list/helpers/item-list-controls';
+import { HomeAlbumCard } from '/@/renderer/features/home/music032/components/home-album-card';
 import { HomeSection } from '/@/renderer/features/home/music032/components/home-section';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { AppRoute } from '/@/renderer/router/routes';
@@ -13,7 +14,7 @@ import { formatDateRelative } from '/@/renderer/utils/format';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { M032Album } from '/@/shared/api/music032/music032-types';
 import { Icon } from '/@/shared/components/icon/icon';
-import { Album, LibraryItem } from '/@/shared/types/domain-types';
+import { Album } from '/@/shared/types/domain-types';
 
 /** 最近添加：入库时间倒序的专辑网格，列数随宽度 3 → 6。 */
 export const HomeRecentAlbums = ({ albums }: { albums: M032Album[] }) => {
@@ -61,18 +62,7 @@ export const HomeRecentAlbums = ({ albums }: { albums: M032Album[] }) => {
         >
             <div className={styles.recentGrid}>
                 {items.map((album) => (
-                    <MemoizedItemCard
-                        controls={controls}
-                        data={album}
-                        enableDrag={false}
-                        enableExpansion={false}
-                        imageFetchPriority="low"
-                        itemType={LibraryItem.ALBUM}
-                        key={album.id}
-                        rows={rows}
-                        type="poster"
-                        withControls
-                    />
+                    <HomeAlbumCard album={album} controls={controls} key={album.id} rows={rows} />
                 ))}
             </div>
         </HomeSection>

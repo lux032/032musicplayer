@@ -869,6 +869,42 @@
     transform: translate(-50%, -50%);
 }
 
+/* ------------------------------------------------- now-playing indicator */
+.card-wrap {
+    position: relative;
+    min-width: 0;
+}
+
+.card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    padding: 5px;
+    color: var(--theme-colors-primary);
+    background: alpha(var(--theme-colors-background), 0.78);
+    border-radius: 99px;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+}
+
+.song-row.is-current .row-art-play,
+.resume-row.is-current .row-art-play {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+}
+
+.song-row.is-current .row-title,
+.resume-row.is-current .row-title,
+.hero-tracks .is-current .t b {
+    color: var(--theme-colors-primary);
+}
+
+.hero-tracks .is-current .no {
+    color: var(--theme-colors-primary);
+}
+
 .role-tag {
     justify-self: start;
     padding: 2px 7px;
