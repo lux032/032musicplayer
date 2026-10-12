@@ -406,8 +406,15 @@ export const Music032Controller: InternalControllerEndpoint = {
 
     getAlbumDetail: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
-        const res = await m032ApiClient(apiClientProps).get<M032AlbumDetail>(`/albums/${query.id}`);
-        return m032Normalize.album(ctx, res.album, res.tracks);
+        const client = m032ApiClient(apiClientProps);
+        const res = await client.get<M032AlbumDetail>(`/albums/${query.id}`);
+        // /albums/{id} embeds at most 500 tracks; /tracks pages through the rest
+        // in the same disc/track order.
+        const tracks =
+            res.album.trackCount > res.tracks.length
+                ? await fetchAll<M032Track>(client, '/tracks', { album: query.id })
+                : res.tracks;
+        return m032Normalize.album(ctx, res.album, tracks);
     },
 
     getAlbumInfo: async ({ apiClientProps, query }) => {
