@@ -102,6 +102,14 @@ const getAudioDevices = async () => {
     return ipcRenderer.invoke('player-get-audio-devices');
 };
 
+const rendererBuffering = (cb: (isBuffering: boolean) => void) => {
+    ipcRenderer.on('renderer-player-buffering', (_, isBuffering) => cb(Boolean(isBuffering)));
+};
+
+const rendererLoadError = (cb: (reason: string) => void) => {
+    ipcRenderer.on('renderer-player-load-error', (_, reason) => cb(String(reason)));
+};
+
 const rendererTrackEnded = (cb: () => void) => {
     ipcRenderer.on('renderer-player-track-ended', () => cb());
 };
@@ -219,8 +227,10 @@ export const mpvPlayer = {
 
 export const mpvPlayerListener = {
     rendererAutoNext,
+    rendererBuffering,
     rendererCurrentTime,
     rendererError,
+    rendererLoadError,
     rendererMpvReconnect,
     rendererNext,
     rendererNextAlbum,

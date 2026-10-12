@@ -197,7 +197,22 @@ const createMpv = async (data: {
         sendRendererPlaybackEvent(channel, ...args);
     };
 
+    // Playback state signals for server-side reporting (032 Music Server sessions):
+    // node-mpv drops end-file reasons and does not observe cache stalls.
+    mpv.observeProperty('paused-for-cache').catch(() => undefined);
+    (mpv as any).socket?.on?.('message', (message: any) => {
+        if (message?.event === 'end-file' && message.reason === 'error') {
+            sendIfCurrent('renderer-player-load-error', String(message.file_error || 'error'));
+        }
+    });
+
     mpv.on('status', (status) => {
+        // node-mpv's typings only list its default properties; this one is observed above.
+        if ((status.property as string) === 'paused-for-cache') {
+            sendIfCurrent('renderer-player-buffering', Boolean(status.value));
+            return;
+        }
+
         if (status.property === 'playlist-pos') {
             const currentPos = typeof status.value === 'number' ? status.value : undefined;
 

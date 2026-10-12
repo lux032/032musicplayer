@@ -3,6 +3,7 @@ import type ReactPlayer from 'react-player';
 
 import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
+import { eventEmitter } from '/@/renderer/events/event-emitter';
 import { AudioPlayer, PlayerOnProgressProps } from '/@/renderer/features/player/audio-player/types';
 import { convertToLogVolume } from '/@/renderer/features/player/audio-player/utils/player-utils';
 import { logger } from '/@/renderer/utils/logger';
@@ -40,6 +41,8 @@ interface WebPlayerEngineProps {
     src2: string | undefined;
     volume: number;
 }
+
+const emitBuffering = (buffering: boolean) => eventEmitter.emit('PLAYER_BUFFERING', { buffering });
 
 const MAX_NETWORK_RETRIES = 5;
 const NETWORK_RETRY_DELAY_MS = 2000;
@@ -199,6 +202,7 @@ export const WebPlayerEngine = (props: WebPlayerEngineProps) => {
         onEnded: () => void,
         onErrorPause: () => void,
         networkRetryCountRef: React.RefObject<number>,
+        isActivePlayer: boolean,
     ) => {
         return ({ target }: ErrorEvent) => {
             const { current: player } = playerRef;
@@ -244,6 +248,10 @@ export const WebPlayerEngine = (props: WebPlayerEngineProps) => {
             }
 
             pauseBothPlayers();
+            if (isActivePlayer) {
+                // Final failure of the audible track (retries exhausted or undecodable).
+                eventEmitter.emit('PLAYER_ERROR', { reason: label });
+            }
             if (code === MediaError.MEDIA_ERR_DECODE) {
                 logger.error('Playback decode error, skipping track', {
                     code,
@@ -333,12 +341,15 @@ export const WebPlayerEngine = (props: WebPlayerEngineProps) => {
                 id="web-player-1"
                 loop={loopPlayer1}
                 muted={isMuted}
+                onBuffer={playerNum === 1 ? () => emitBuffering(true) : undefined}
+                onBufferEnd={playerNum === 1 ? () => emitBuffering(false) : undefined}
                 onEnded={src1 && !loopPlayer1 ? () => onEndedPlayer1() : undefined}
                 onError={handleOnError(
                     player1Ref,
                     () => onEndedPlayer1(),
                     onErrorPause,
                     networkRetryCount1,
+                    playerNum === 1,
                 )}
                 onProgress={onProgressPlayer1}
                 onReady={handleOnReadyPlayer1}
@@ -359,12 +370,15 @@ export const WebPlayerEngine = (props: WebPlayerEngineProps) => {
                 id="web-player-2"
                 loop={loopPlayer2}
                 muted={isMuted}
+                onBuffer={playerNum === 2 ? () => emitBuffering(true) : undefined}
+                onBufferEnd={playerNum === 2 ? () => emitBuffering(false) : undefined}
                 onEnded={src2 && !loopPlayer2 ? () => onEndedPlayer2() : undefined}
                 onError={handleOnError(
                     player2Ref,
                     () => onEndedPlayer2(),
                     onErrorPause,
                     networkRetryCount2,
+                    playerNum === 2,
                 )}
                 onProgress={onProgressPlayer2}
                 onReady={handleOnReadyPlayer2}

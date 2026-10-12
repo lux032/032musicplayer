@@ -11,6 +11,8 @@ export type EventMap = {
     MEDIA_NEXT: MediaNextEventPayload;
     MEDIA_PREV: MediaPrevEventPayload;
     MPV_RELOAD: MpvReloadEventPayload;
+    PLAYER_BUFFERING: PlayerBufferingEventPayload;
+    PLAYER_ERROR: PlayerErrorEventPayload;
     PLAYER_LYRICS_FETCHED: PlayerLyricsFetchedEventPayload;
     PLAYER_PLAY: PlayerPlayEventPayload;
     PLAYER_REPEATED: PlayerRepeatedEventPayload;
@@ -48,6 +50,15 @@ export type MediaPrevEventPayload = {
 };
 
 export type MpvReloadEventPayload = Record<string, never>;
+
+export type PlayerBufferingEventPayload = {
+    buffering: boolean;
+};
+
+/** The current track failed to play (after any engine retries). */
+export type PlayerErrorEventPayload = {
+    reason: string;
+};
 
 export type PlayerLyricsFetchedEventPayload = {
     lyrics: FullLyricsMetadata;
