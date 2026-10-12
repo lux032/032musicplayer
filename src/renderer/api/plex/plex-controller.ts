@@ -1307,6 +1307,7 @@ export const PlexController: InternalControllerEndpoint = {
         return {
             features: {
                 [ServerFeature.ARTIST_IMAGE_UPLOAD]: [1],
+                [ServerFeature.INTERNET_RADIO]: [1],
                 [ServerFeature.STAR_RATING]: [1],
             },
             id: args.apiClientProps.server?.id,

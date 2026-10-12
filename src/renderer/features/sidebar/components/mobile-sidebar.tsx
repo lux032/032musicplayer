@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import styles from './mobile-sidebar.module.css';
 
+import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import { ActionBar } from '/@/renderer/features/sidebar/components/action-bar';
 import { SidebarIcon } from '/@/renderer/features/sidebar/components/sidebar-icon';
 import { SidebarItem } from '/@/renderer/features/sidebar/components/sidebar-item';
@@ -55,12 +56,13 @@ export const MobileSidebar = () => {
     );
 
     const sidebarItems = useSidebarItems();
+    const radioSupported = useInternetRadioSupported();
 
     const sidebarItemsWithRoute: SidebarItemType[] = useMemo(() => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
-            .filter((item) => !item.disabled)
+            .filter((item) => !item.disabled && (item.id !== 'Radio' || radioSupported))
             .map((item) => ({
                 ...item,
                 label:
@@ -69,7 +71,7 @@ export const MobileSidebar = () => {
             }));
 
         return items;
-    }, [sidebarItems, translatedSidebarItemMap]);
+    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (
         <div className={styles.container} id="mobile-sidebar">

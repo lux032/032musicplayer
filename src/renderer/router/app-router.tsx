@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { HashRouter, Route, Routes } from 'react-router';
 
 import { ShuffleAllContextModal } from '/@/renderer/features/player/components/shuffle-all-modal';
+import { RadioRouteGuard } from '/@/renderer/features/radio/components/radio-route-guard';
 import { SettingsContextModal } from '/@/renderer/features/settings/components/settings-modal';
 import { RouterErrorBoundary } from '/@/renderer/features/shared/components/router-error-boundary';
 import { AuthenticationOutlet } from '/@/renderer/layouts/authentication-outlet';
@@ -300,7 +301,14 @@ export const AppRouter = () => {
                                             element={<PlaylistListRoute />}
                                             path={AppRoute.PLAYLISTS}
                                         />
-                                        <Route element={<RadioListRoute />} path={AppRoute.RADIO} />
+                                        <Route
+                                            element={
+                                                <RadioRouteGuard>
+                                                    <RadioListRoute />
+                                                </RadioRouteGuard>
+                                            }
+                                            path={AppRoute.RADIO}
+                                        />
                                         <Route
                                             element={<PlaylistDetailSongListRoute />}
                                             path={AppRoute.PLAYLISTS_DETAIL_SONGS}

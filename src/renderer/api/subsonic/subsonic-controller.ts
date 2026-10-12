@@ -1438,7 +1438,7 @@ export const SubsonicController: InternalControllerEndpoint = {
             throw new Error('Failed to ping server');
         }
 
-        const features: ServerFeatures = {};
+        const features: ServerFeatures = { [ServerFeature.INTERNET_RADIO]: [1] };
 
         if (!ping.body.openSubsonic || !ping.body.serverVersion) {
             return { features, version: ping.body.version };

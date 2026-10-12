@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import { DraggableItems } from '/@/renderer/features/settings/components/general/draggable-items';
 import {
     sidebarItems as defaultSidebarItems,
@@ -29,6 +30,7 @@ const SIDEBAR_ITEMS: Array<[string, string]> = [
 export const SidebarReorder = () => {
     const { sidebarItems } = useGeneralSettings();
     const { setSidebarItems } = useSettingsStoreActions();
+    const radioSupported = useInternetRadioSupported();
 
     const mergedSidebarItems = useMemo(() => {
         const settingsMap = new Map(sidebarItems.map((item) => [item.id, item]));
@@ -56,15 +58,36 @@ export const SidebarReorder = () => {
             (item, index, self) => index === self.findIndex((t) => t.id === item.id),
         );
 
-        return uniqueMerged;
-    }, [sidebarItems]);
+        // The Radio entry stays in the persisted list; it is only hidden here
+        // so switching back to a radio-capable server restores it untouched.
+        return radioSupported
+            ? uniqueMerged
+            : uniqueMerged.filter((item) => item.id !== SidebarItem.RADIO);
+    }, [radioSupported, sidebarItems]);
+
+    // Reordering while Radio is hidden must not drop its persisted entry.
+    const setItemsPreservingRadio = (items: SidebarItemType[]) => {
+        if (radioSupported) {
+            setSidebarItems(items);
+            return;
+        }
+        const radioIndex = sidebarItems.findIndex((item) => item.id === SidebarItem.RADIO);
+        const radioItem = sidebarItems[radioIndex];
+        if (!radioItem) {
+            setSidebarItems(items);
+            return;
+        }
+        const next = [...items];
+        next.splice(Math.min(radioIndex, next.length), 0, radioItem);
+        setSidebarItems(next);
+    };
 
     return (
         <DraggableItems
             description="setting.sidebarConfiguration"
             itemLabels={SIDEBAR_ITEMS}
             items={mergedSidebarItems as unknown as SidebarItemType[]}
-            setItems={setSidebarItems}
+            setItems={setItemsPreservingRadio}
             title="setting.sidebarConfiguration"
         />
     );

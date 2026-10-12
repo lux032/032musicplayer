@@ -6,6 +6,7 @@ import { Link, NavLink, useNavigate } from 'react-router';
 
 import styles from './collapsed-sidebar.module.css';
 
+import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import JellyfinLogo from '/@/renderer/features/servers/assets/jellyfin.png';
 import Music032Logo from '/@/renderer/features/servers/assets/music032.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
@@ -45,6 +46,7 @@ export const CollapsedSidebar = () => {
     const { windowBarStyle } = useWindowSettings();
     const sidebarCollapsedNavigation = useSidebarCollapsedNavigation();
     const sidebarItems = useSidebarItems();
+    const radioSupported = useInternetRadioSupported();
     const currentServer = useCurrentServer();
     const sidebarPlaylistList = useSidebarPlaylistList();
     const { isScanning } = useScanStatus();
@@ -73,7 +75,7 @@ export const CollapsedSidebar = () => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
-            .filter((item) => !item.disabled)
+            .filter((item) => !item.disabled && (item.id !== 'Radio' || radioSupported))
             .map((item) => ({
                 ...item,
                 label:
@@ -82,7 +84,7 @@ export const CollapsedSidebar = () => {
             }));
 
         return items;
-    }, [sidebarItems, translatedSidebarItemMap]);
+    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (
         <motion.div

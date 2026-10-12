@@ -4,6 +4,7 @@ export enum ServerFeature {
     ALBUM_YES_NO_RATING_FILTER = 'albumYesNoRatingFilter',
     ARTIST_IMAGE_UPLOAD = 'artistImageUpload',
     BFR = 'bfr',
+    INTERNET_RADIO = 'internetRadio',
     INTERNET_RADIO_IMAGE_UPLOAD = 'internetRadioImageUpload',
     JUKEBOX = 'jukebox',
     LYRICS_MULTIPLE_STRUCTURED = 'lyricsMultipleStructured',

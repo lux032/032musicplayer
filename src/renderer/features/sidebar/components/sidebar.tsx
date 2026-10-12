@@ -11,6 +11,7 @@ import {
     useIsRadioActive,
     useRadioPlayer,
 } from '/@/renderer/features/radio/hooks/use-radio-player';
+import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import { ActionBar } from '/@/renderer/features/sidebar/components/action-bar';
 import { SidebarCollectionList } from '/@/renderer/features/sidebar/components/sidebar-collection-list';
 import { SidebarIcon } from '/@/renderer/features/sidebar/components/sidebar-icon';
@@ -89,6 +90,7 @@ export const Sidebar = () => {
     );
 
     const sidebarItems = useSidebarItems();
+    const radioSupported = useInternetRadioSupported();
     const { windowBarStyle } = useWindowSettings();
     const sidebarImageEnabled = useSidebarImageEnabled();
     const sidebarImageShown = useAppStore((state) => state.sidebar.image);
@@ -98,7 +100,7 @@ export const Sidebar = () => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
-            .filter((item) => !item.disabled)
+            .filter((item) => !item.disabled && (item.id !== 'Radio' || radioSupported))
             .map((item) => ({
                 ...item,
                 label:
@@ -107,7 +109,7 @@ export const Sidebar = () => {
             }));
 
         return items;
-    }, [sidebarItems, translatedSidebarItemMap]);
+    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     /* Library accordion: only items with a route (exclude Collections section) */
     const libraryItemsWithRoute = useMemo(

@@ -1357,6 +1357,7 @@ export const JellyfinController: InternalControllerEndpoint = {
         }
 
         const defaultFeatures = {
+            [ServerFeature.INTERNET_RADIO]: [1],
             [ServerFeature.REPORT_PLAYBACK]: [1],
         };
 
