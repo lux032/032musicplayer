@@ -570,6 +570,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
+    z-index: 2;
     display: grid;
     place-items: center;
     width: 28px;
@@ -757,6 +758,7 @@
     position: absolute;
     right: 6px;
     bottom: 6px;
+    z-index: 2;
     display: grid;
     place-items: center;
     width: 32px;
