@@ -15,7 +15,7 @@
 
 | 文件 | 用途 |
 |------|------|
-| `src/shared/api/music032/music032-types.ts` | 032 API v1 响应类型，以 `032music-server/internal/storage` 的 Go 结构体为准 |
+| `src/shared/api/music032/music032-types.ts` | 032 API v1 响应类型（含主页 `/api/v1/home*` 类型），以 `032music-server/internal/storage` 的 Go 结构体和 `docs/api/home.md` 为准 |
 | `src/shared/api/music032/music032-normalize.ts` | 032 → feishin 领域类型的规范化；媒体 URL 统一带 `mediaToken` |
 | `src/renderer/api/music032/music032-api.ts` | HTTP 客户端：Bearer API Token，非 2xx 转 `Music032ApiError`，401 触发重新登录 |
 | `src/renderer/api/music032/music032-controller.ts` | controller 接口实现（方法对照见下文） |
@@ -24,12 +24,16 @@
 | `src/renderer/features/player/hooks/use-music032-playback-reporter.ts` | 把播放器 store / 引擎事件接到适配层的 hook |
 | `src/renderer/features/servers/components/music032-credential-fields.tsx` | API Token + 媒体凭据输入框（添加、编辑、server-lock 登录共用） |
 | `src/renderer/features/servers/assets/music032.png` | 服务端图标，取自 032 的 `internal/http/assets/icon-192.png` |
+| `src/renderer/features/home/music032/` | 032 主页（按 032 网页主页设计重写）：路由根、数据层、聚焦卡 / 接着听 / 最近添加 / 作品轮换 / 主题曲轮换 / 编年 / 歌单 / 页脚统计 / 空库引导，样式走 feishin 主题变量 |
 | `scripts/music032/playback-reporter.test.mjs` | 上报状态机单元测试，`pnpm test:music032`（需 Node >= 22.18） |
 | `MUSIC032_CHANGES.md` | 本文件 |
 
 **合并规则：** 这些文件 plex 和上游都没有，不会冲突。plex 或上游重命名了它们依赖的
 类型或 hook（如 `usePlayerEvents`、`InternalControllerEndpoint`、`ServerFeature`）时，
-以 `pnpm run typecheck` 报错为准跟着改。
+以 `pnpm run typecheck` 报错为准跟着改。032 主页额外依赖：`MemoizedItemCard` /
+`useDefaultItemListControls` / `ContextMenuController.call` / `useSetFavorite` /
+`useResumePosition`（续播靠 `Song.resumePositionMs`）/ `getTitlePath` / `ItemImage`，
+上游改这些接口时同样跟着改。
 
 ---
 
@@ -43,6 +47,18 @@
 ### `src/renderer/api/controller.ts`
 - 分发表加 `music032: Music032Controller`。
 - **合并规则：** 冲突时保留 `music032` 两行（类型和值），其余取对方。
+
+### `src/renderer/features/home/routes/home-route.tsx`
+- 032 主页分流：原 `HomeRoute` 主体原样改名为 `DefaultHomeContent`，新的 `HomeRoute`
+  只做分流：服务端类型是 `MUSIC032` 时渲染 `<Music032HomeRoute fallback={<DefaultHomeContent />} />`，
+  后端没有主页接口（`/api/v1/home` 返回 404/501）时由 `Music032HomeRoute` 渲染 fallback。
+- **合并规则：** 保留分流分支和 `DefaultHomeContent` 的导出关系；上游改默认主页内容时，
+  改动落在 `DefaultHomeContent` 里，跟随上游。
+
+### `src/renderer/api/query-keys.ts`
+- 追加 `home` 命名空间（`overview` / `works` / `songs` / `chronicle` / `root`），
+  供 032 主页使用；`batch` / `generation` / `type` / `year` 进 key。
+- **合并规则：** 保留 `home` 条目，其余取对方。
 
 ### `src/renderer/store/auth.store.ts`
 - `logout()` 同时清空 `mediaToken`。401 不清空媒体凭据，所以 API Token 被轮换后，重新登录只需要填 API Token。
@@ -71,6 +87,8 @@
 
 ### `src/i18n/locales/en.json`、`zh-Hans.json`、`zh-Hant.json`
 - 新增 `error.music032*`（5 个）和 `form.addServer.input_music032*`（5 个）。
+- 新增 `page.home.music032*`（032 主页全部文案，含页签、区块标题、用途角色短标签、
+  空库引导、页脚统计）。
 - **合并规则：** 接受对方的措辞改动；对方删掉这些 key 时要加回来。
 
 ### 播放上报接线
@@ -120,6 +138,9 @@
 
 ## 已知限制（客户端侧）
 
+- **032 主页**：作品和系列在客户端没有页面，标题/chips/「查看系列」等跳转用系统浏览器打开
+  032 网页端对应地址（集中在 `home/music032/lib/open-music032-web.ts`，将来有客户端内页面时只改这里）。
+  网页主页的搜索框未移植（feishin 有全局搜索）；「接着听」的「播放记录」和页脚「待审核」同样跳网页。
 - **排序方向**：032 每种排序的方向固定，界面上的升序/降序切换对 032 列表无效（等 C2）。
 - **多值筛选**：artist / genre / album 筛选只取第一个值；多张专辑会逐个请求再拼接。
 - **专辑年份**：专辑列表只能按单个年份精确筛选（`minYear == maxYear`）；歌曲列表支持区间。
