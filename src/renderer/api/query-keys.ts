@@ -280,6 +280,16 @@ export const queryKeys: Record<
         },
         root: (serverId: string) => [serverId, 'genres'] as const,
     },
+    home: {
+        chronicle: (serverId: string, year: number) =>
+            [serverId, 'home', 'chronicle', year] as const,
+        overview: (serverId: string) => [serverId, 'home', 'overview'] as const,
+        root: (serverId: string) => [serverId, 'home'] as const,
+        songs: (serverId: string, args: { batch: number; generation: string }) =>
+            [serverId, 'home', 'songs', args] as const,
+        works: (serverId: string, args: { batch: number; generation: string; type: string }) =>
+            [serverId, 'home', 'works', args] as const,
+    },
     musicFolders: {
         list: (serverId: string) => [serverId, 'musicFolders', 'list'] as const,
     },

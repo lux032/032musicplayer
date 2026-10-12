@@ -37,6 +37,23 @@ export type M032AlbumDetail = {
     tracks: M032Track[];
 };
 
+export type M032AlbumWork = {
+    albumId: number;
+    albumRole?: string;
+    albumType?: string;
+    artist?: string;
+    artworkUrl?: string;
+    discCount?: number;
+    role: string;
+    season: number;
+    source: string;
+    title: string;
+    trackCount?: number;
+    trackRoles?: string[];
+    workId: number;
+    year?: number;
+};
+
 export type M032ApiErrorBody = {
     error?: { code?: string; message?: string };
 };
@@ -81,16 +98,117 @@ export type M032Capabilities = {
     };
 };
 
+export type M032HomeAlbumPane = {
+    album: M032Album;
+    focus: string;
+    noteTime: string;
+    play: M032PlayRef;
+    previewDurationMillis: number;
+    resume: M032PlaybackRecord | null;
+    tracks: M032Track[];
+};
+
+export type M032HomeChronicle = {
+    result: M032HomeChronicleResult;
+    selectedYear: number;
+    years: { count: number; year: number }[];
+};
+
+export type M032HomeChronicleResult = {
+    albums: M032Album[];
+    total: number;
+    year: number;
+};
+
+export type M032HomeResponse = {
+    chronicle: M032HomeChronicle | null;
+    empty: boolean;
+    generatedAt: string;
+    playlists: M032Playlist[];
+    recentAlbums: M032Album[];
+    resume: M032PlaybackRecord[];
+    rotationDay: string;
+    songs: M032RotationPage<M032HomeSongRow>;
+    spotlight: M032HomeSpotlight | null;
+    stats: {
+        albums: number;
+        lastScanAt: string;
+        pendingReviewCount: number;
+        tracks: number;
+        works: number;
+    };
+    works: M032RotationPage<M032HomeWorkCard>;
+};
+
+export type M032HomeSeriesPane = {
+    albumCount: number;
+    albums: { album: M032AlbumWork; play: M032PlayRef; workId: number; workTitle: string }[];
+    isSeries: boolean;
+    play: M032PlayRef;
+    seriesId: number;
+    title: string;
+    trackTotal: number;
+    workIds: number[];
+    works: { roleCounts: M032RoleCount[]; work: M032Work }[];
+    yearFrom: number;
+    yearTo: number;
+};
+
+export type M032HomeSongRow = {
+    play: M032PlayRef;
+    role: string;
+    track: M032Track;
+    work: { id: number; title: string; year: number };
+};
+
+export type M032HomeSpotlight = {
+    defaultTab: string;
+    listening: M032HomeAlbumPane | null;
+    random: M032HomeAlbumPane | null;
+    recent: M032HomeAlbumPane | null;
+    series: M032HomeSeriesPane | null;
+    tabs: string[];
+};
+
+export type M032HomeWorkCard = {
+    artworkUrl: string;
+    coverUrl: string;
+    id: number;
+    play: M032PlayRef;
+    posterUrl: string;
+    roleCounts: M032RoleCount[];
+    series: null | { id: number; title: string };
+    title: string;
+    trackCount: number;
+    workType: string;
+    year: number;
+};
+
 export type M032Lyrics = {
     lines: { text: string; timeMs: number }[];
     synced: boolean;
 };
+
+// ---------------------------------------------------------------------------
+// Home API (/api/v1/home*, docs/api/home.md in 032music-server)
+// ---------------------------------------------------------------------------
 
 export type M032Page<T> = {
     items: T[];
     limit: number;
     offset: number;
     total: number;
+};
+
+export type M032PlaybackRecord = {
+    durationMillis: number;
+    lastPlayedAt: string;
+    playCount: number;
+    positionMillis: number;
+    skipCount?: number;
+    state?: string;
+    track: M032Track;
+    trackId: number;
 };
 
 export type M032Playlist = {
@@ -117,6 +235,28 @@ export type M032PlaylistItemResult = {
     skippedDuplicate: number;
     skippedInvalid: number;
     total: number;
+};
+
+export type M032PlayRef = {
+    id: number;
+    type: M032PlayType;
+};
+
+export type M032PlayType = 'album' | 'playlist' | 'series' | 'track' | 'work';
+
+export type M032RoleCount = {
+    count: number;
+    role: string;
+};
+
+export type M032RotationPage<T> = {
+    batch: number;
+    count: number;
+    generation: string;
+    items: T[];
+    pages: number;
+    renewed: boolean;
+    type?: string;
 };
 
 export type M032SimilarTrack = {
@@ -178,4 +318,26 @@ export type M032TranscodeFormat = {
     bitrates?: number[];
     default?: number;
     maxSampleRates?: number[];
+};
+
+export type M032Work = {
+    createdAt: string;
+    externalId: string;
+    id: number;
+    origin?: string;
+    posterUrl: string;
+    readingTitle: string;
+    title: string;
+    trackCount: number;
+    translatedTitle: string;
+    type: string;
+    typeLocked: boolean;
+    updatedAt: string;
+    year: number;
+};
+
+export type M032WorkTrack = M032Track & {
+    role: string;
+    season: number;
+    sequence: number;
 };
