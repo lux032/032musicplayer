@@ -7,6 +7,7 @@ import { Link, NavLink, useNavigate } from 'react-router';
 import styles from './collapsed-sidebar.module.css';
 
 import JellyfinLogo from '/@/renderer/features/servers/assets/jellyfin.png';
+import Music032Logo from '/@/renderer/features/servers/assets/music032.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
@@ -199,9 +200,11 @@ export const CollapsedSidebar = () => {
                                                 ? NavidromeLogo
                                                 : currentServer.type === ServerType.JELLYFIN
                                                   ? JellyfinLogo
-                                                  : currentServer.type === ServerType.PLEX
-                                                    ? PlexLogo
-                                                    : OpenSubsonicLogo
+                                                  : currentServer.type === ServerType.MUSIC032
+                                                    ? Music032Logo
+                                                    : currentServer.type === ServerType.PLEX
+                                                      ? PlexLogo
+                                                      : OpenSubsonicLogo
                                         }
                                     />
                                 }

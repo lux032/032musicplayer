@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import i18n from '/@/i18n/i18n';
 import { api } from '/@/renderer/api';
+import { Music032CredentialFields } from '/@/renderer/features/servers/components/music032-credential-fields';
 import { queryClient } from '/@/renderer/lib/react-query';
 import { getServerById, useAuthStoreActions } from '/@/renderer/store';
 import { Checkbox } from '/@/shared/components/checkbox/checkbox';
@@ -53,6 +54,7 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
             enableAudiobooks: server.enableAudiobooks,
             isAdmin: server?.isAdmin,
             legacyAuth: false,
+            mediaToken: '',
             name: server?.name,
             password: password || '',
             preferInstantMix: server.preferInstantMix,
@@ -67,7 +69,9 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
     const isSubsonic = form.values.type === ServerType.SUBSONIC;
     const isNavidrome = form.values.type === ServerType.NAVIDROME;
-    const isPlex = form.values.type === ServerType.PLEX;
+    const isMusic032 = form.values.type === ServerType.MUSIC032;
+    // Plex and 032 authenticate with tokens only (no username).
+    const isPlex = form.values.type === ServerType.PLEX || isMusic032;
 
     const handleSubmit = form.onSubmit(async (values) => {
         try {
@@ -75,7 +79,9 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
             // Check if we can skip authentication
             const usernameChanged = !isPlex && values.username !== server.username;
-            const passwordProvided = values.password && values.password.trim() !== '';
+            const passwordProvided =
+                (values.password && values.password.trim() !== '') ||
+                (values.mediaToken && values.mediaToken.trim() !== '');
             const urlChanged = values.url !== server.url;
             const typeChanged = values.type !== server.type;
 
@@ -112,13 +118,31 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                     });
                 }
 
+                // 032: an empty field keeps the stored token, so rotating only
+                // one of the two credentials does not require re-entering both.
+                const existing = getServerById(server.id);
+                const apiToken =
+                    values.type === ServerType.MUSIC032
+                        ? values.password || existing?.credential || ''
+                        : values.password;
+
                 data = await authFunction(
                     values.url,
                     {
                         legacy: values.legacyAuth,
-                        password: values.password,
-                        token: values.type === ServerType.PLEX ? values.password : undefined,
-                        username: values.type === ServerType.PLEX ? '' : values.username,
+                        mediaToken:
+                            values.type === ServerType.MUSIC032
+                                ? values.mediaToken || existing?.mediaToken || ''
+                                : undefined,
+                        password: apiToken,
+                        token:
+                            values.type === ServerType.PLEX || values.type === ServerType.MUSIC032
+                                ? apiToken
+                                : undefined,
+                        username:
+                            values.type === ServerType.PLEX || values.type === ServerType.MUSIC032
+                                ? ''
+                                : values.username,
                     },
                     values.type,
                 );
@@ -142,6 +166,10 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
 
                 if (data.ndCredential !== undefined) {
                     serverItem.ndCredential = data.ndCredential;
+                }
+
+                if (data.mediaToken !== undefined) {
+                    serverItem.mediaToken = data.mediaToken;
                 }
             }
 
@@ -270,26 +298,34 @@ export const EditServerForm = ({ isUpdate, onCancel, password, server }: EditSer
                         {...form.getInputProps('username')}
                     />
                 )}
-                <PasswordInput
-                    data-autofocus
-                    description={
-                        isPlex
-                            ? t('form.addServer.input', {
-                                  context: 'tokenDescription',
-                              })
-                            : undefined
-                    }
-                    label={
-                        isPlex
-                            ? t('form.addServer.input', {
-                                  context: 'token',
-                              })
-                            : t('form.addServer.input', {
-                                  context: 'password',
-                              })
-                    }
-                    {...form.getInputProps('password')}
-                />
+                {isMusic032 ? (
+                    <Music032CredentialFields
+                        apiTokenProps={form.getInputProps('password')}
+                        keepExistingHint
+                        mediaTokenProps={form.getInputProps('mediaToken')}
+                    />
+                ) : (
+                    <PasswordInput
+                        data-autofocus
+                        description={
+                            isPlex
+                                ? t('form.addServer.input', {
+                                      context: 'tokenDescription',
+                                  })
+                                : undefined
+                        }
+                        label={
+                            isPlex
+                                ? t('form.addServer.input', {
+                                      context: 'token',
+                                  })
+                                : t('form.addServer.input', {
+                                      context: 'password',
+                                  })
+                        }
+                        {...form.getInputProps('password')}
+                    />
+                )}
                 {localSettings && isNavidrome && (
                     <Checkbox
                         label={t('form.addServer.input', {

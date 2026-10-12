@@ -59,6 +59,7 @@ export const useAuthStore = createWithEqualityFn<AuthSlice>()(
                             const server = state.serverList[currentServer.id];
                             if (server) {
                                 server.credential = '';
+                                server.mediaToken = undefined;
                                 server.ndCredential = undefined;
                                 server.savePassword = false;
                             }

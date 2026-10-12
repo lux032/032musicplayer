@@ -10,6 +10,7 @@ import {
     isServerLock,
 } from '/@/renderer/features/action-required/utils/window-properties';
 import JellyfinIcon from '/@/renderer/features/servers/assets/jellyfin.png';
+import Music032Icon from '/@/renderer/features/servers/assets/music032.png';
 import NavidromeIcon from '/@/renderer/features/servers/assets/navidrome.png';
 import SubsonicIcon from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexIcon from '/@/renderer/features/servers/assets/plex.png';
@@ -19,6 +20,7 @@ import {
     JellyfinSignInMethod,
     JellyfinSignInMethodPicker,
 } from '/@/renderer/features/servers/components/jellyfin-sign-in-method-picker';
+import { Music032CredentialFields } from '/@/renderer/features/servers/components/music032-credential-fields';
 import { useJellyfinQuickConnect } from '/@/renderer/features/servers/hooks/use-jellyfin-quick-connect';
 import { useAuthStoreActions, useServerList } from '/@/renderer/store';
 import { normalizeServerUrl } from '/@/renderer/utils/normalize-server-url';
@@ -83,6 +85,10 @@ const SERVER_TYPES: Record<ServerType, ServerDetails> = {
         icon: JellyfinIcon,
         name: 'Jellyfin',
     },
+    [ServerType.MUSIC032]: {
+        icon: Music032Icon,
+        name: '032 Music',
+    },
     [ServerType.NAVIDROME]: {
         icon: NavidromeIcon,
         name: 'Navidrome',
@@ -119,6 +125,7 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
         initialValues: {
             enableAudiobooks: undefined,
             legacyAuth: isLegacyAuth(),
+            mediaToken: '',
             name:
                 (localSettings ? localSettings.env.SERVER_NAME : window.SERVER_NAME) || 'My Server',
             password: '',
@@ -140,11 +147,14 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
     const showQuickConnect =
         form.values.type === ServerType.JELLYFIN && signInMethod === 'quickConnect';
     const isPlex = form.values.type === ServerType.PLEX;
+    const isMusic032 = form.values.type === ServerType.MUSIC032;
 
     const isSubmitDisabled =
         !form.values.name ||
         !form.values.url ||
-        (!showQuickConnect && (isPlex ? !form.values.token : !form.values.username));
+        (!showQuickConnect &&
+            (isPlex || isMusic032 ? !form.values.token : !form.values.username)) ||
+        (isMusic032 && !form.values.mediaToken);
 
     const {
         code: quickConnectCode,
@@ -214,11 +224,13 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
 
         try {
             setIsLoading(true);
-            const isPlexType = values.type === ServerType.PLEX;
+            const isPlexType =
+                values.type === ServerType.PLEX || values.type === ServerType.MUSIC032;
             const data: AuthenticationResponse | undefined = await authFunction(
                 values.url,
                 {
                     legacy: values.legacyAuth,
+                    mediaToken: values.type === ServerType.MUSIC032 ? values.mediaToken : undefined,
                     password: isPlexType ? values.token : values.password,
                     token: isPlexType ? values.token : undefined,
                     username: isPlexType ? '' : values.username,
@@ -265,6 +277,10 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
 
             if (data.ndCredential !== undefined) {
                 serverItem.ndCredential = data.ndCredential;
+            }
+
+            if (data.mediaToken !== undefined) {
+                serverItem.mediaToken = data.mediaToken;
             }
 
             addServer(serverItem);
@@ -391,7 +407,12 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
                         />
                     )}
                     {!showQuickConnect &&
-                        (isPlex ? (
+                        (isMusic032 ? (
+                            <Music032CredentialFields
+                                apiTokenProps={form.getInputProps('token')}
+                                mediaTokenProps={form.getInputProps('mediaToken')}
+                            />
+                        ) : isPlex ? (
                             <PasswordInput
                                 description={t('form.addServer.input', {
                                     context: 'tokenDescription',

@@ -15,6 +15,7 @@ import {
     isServerLock,
 } from '/@/renderer/features/action-required/utils/window-properties';
 import JellyfinIcon from '/@/renderer/features/servers/assets/jellyfin.png';
+import Music032Icon from '/@/renderer/features/servers/assets/music032.png';
 import NavidromeIcon from '/@/renderer/features/servers/assets/navidrome.png';
 import SubsonicIcon from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexIcon from '/@/renderer/features/servers/assets/plex.png';
@@ -24,6 +25,7 @@ import {
     JellyfinSignInMethod,
     JellyfinSignInMethodPicker,
 } from '/@/renderer/features/servers/components/jellyfin-sign-in-method-picker';
+import { Music032CredentialFields } from '/@/renderer/features/servers/components/music032-credential-fields';
 import { useJellyfinQuickConnect } from '/@/renderer/features/servers/hooks/use-jellyfin-quick-connect';
 import { AnimatedPage } from '/@/renderer/features/shared/components/animated-page';
 import { PageErrorBoundary } from '/@/renderer/features/shared/components/page-error-boundary';
@@ -53,6 +55,7 @@ const localSettings = isElectron() ? window.api.localSettings : null;
 
 const SERVER_ICONS: Record<ServerType, string> = {
     [ServerType.JELLYFIN]: JellyfinIcon,
+    [ServerType.MUSIC032]: Music032Icon,
     [ServerType.NAVIDROME]: NavidromeIcon,
     [ServerType.PLEX]: PlexIcon,
     [ServerType.SUBSONIC]: SubsonicIcon,
@@ -60,6 +63,7 @@ const SERVER_ICONS: Record<ServerType, string> = {
 
 const SERVER_NAMES: Record<ServerType, string> = {
     [ServerType.JELLYFIN]: 'Jellyfin',
+    [ServerType.MUSIC032]: '032 Music',
     [ServerType.NAVIDROME]: 'Navidrome',
     [ServerType.PLEX]: 'Plex',
     [ServerType.SUBSONIC]: 'OpenSubsonic',
@@ -79,7 +83,9 @@ const LoginRoute = () => {
     const serverUrl = window.SERVER_URL || '';
     const remoteUrl = window.REMOTE_URL || '';
     const legacyAuth = serverLock && isLegacyAuth();
-    const isPlex = serverType === ServerType.PLEX;
+    const isMusic032 = serverType === ServerType.MUSIC032;
+    // Plex and 032 authenticate with tokens only (no username).
+    const isPlex = serverType === ServerType.PLEX || isMusic032;
 
     const config = [
         {
@@ -111,6 +117,7 @@ const LoginRoute = () => {
 
     const form = useForm({
         initialValues: {
+            mediaToken: '',
             password: '',
             username: '',
         },
@@ -212,6 +219,7 @@ const LoginRoute = () => {
                 serverUrl,
                 {
                     legacy: legacyAuth,
+                    mediaToken: isMusic032 ? values.mediaToken : undefined,
                     password: values.password,
                     token: isPlex ? values.password : undefined,
                     username: isPlex ? '' : values.username,
@@ -257,12 +265,18 @@ const LoginRoute = () => {
                 if (data.ndCredential !== undefined) {
                     updates.ndCredential = data.ndCredential;
                 }
+                if (data.mediaToken !== undefined) {
+                    updates.mediaToken = data.mediaToken;
+                }
                 updateServer(existingServer.id, updates);
                 const updated = getServerById(existingServer.id);
                 if (updated) setCurrentServer(updated);
             } else {
                 if (data.ndCredential !== undefined) {
                     serverItem.ndCredential = data.ndCredential;
+                }
+                if (data.mediaToken !== undefined) {
+                    serverItem.mediaToken = data.mediaToken;
                 }
                 addServer(serverItem);
                 setCurrentServer(serverItem);
@@ -280,7 +294,7 @@ const LoginRoute = () => {
                 message: t('form.addServer.success'),
             });
 
-            if (localSettings && values.password) {
+            if (localSettings && values.password && !isMusic032) {
                 const saved = await localSettings.passwordSet(values.password, serverId);
                 if (!saved) {
                     toast.error({
@@ -299,8 +313,9 @@ const LoginRoute = () => {
     });
 
     const isSubmitDisabled =
-        !showQuickConnect &&
-        (isPlex ? !form.values.password : !form.values.username || !form.values.password);
+        (!showQuickConnect &&
+            (isPlex ? !form.values.password : !form.values.username || !form.values.password)) ||
+        (isMusic032 && !form.values.mediaToken);
     const serverIcon = SERVER_ICONS[serverType as ServerType];
     const serverDisplayName = SERVER_NAMES[serverType as ServerType];
 
@@ -339,7 +354,14 @@ const LoginRoute = () => {
                                         value={signInMethod}
                                     />
                                 )}
-                                {!showQuickConnect && (
+                                {!showQuickConnect && isMusic032 && (
+                                    <Music032CredentialFields
+                                        apiTokenProps={form.getInputProps('password')}
+                                        mediaTokenProps={form.getInputProps('mediaToken')}
+                                        variant="filled"
+                                    />
+                                )}
+                                {!showQuickConnect && !isMusic032 && (
                                     <>
                                         {!isPlex && (
                                             <TextInput

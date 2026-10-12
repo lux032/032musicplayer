@@ -351,6 +351,33 @@ const ALBUM_LIST_FILTERS: Partial<
             value: AlbumListSort.RELEASE_DATE,
         },
     ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: AlbumListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded'),
+            value: AlbumListSort.RECENTLY_ADDED,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyPlayed'),
+            value: AlbumListSort.RECENTLY_PLAYED,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseDate'),
+            value: AlbumListSort.RELEASE_DATE,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseYear'),
+            value: AlbumListSort.YEAR,
+        },
+    ],
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -549,6 +576,38 @@ const SONG_LIST_FILTERS: Partial<
             value: SongListSort.RELEASE_DATE,
         },
     ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.album'),
+            value: SongListSort.ALBUM,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: SongListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.playCount'),
+            value: SongListSort.PLAY_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyPlayed'),
+            value: SongListSort.RECENTLY_PLAYED,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseDate'),
+            value: SongListSort.RELEASE_DATE,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.releaseYear'),
+            value: SongListSort.YEAR,
+        },
+    ],
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -698,6 +757,7 @@ const FOLDER_LIST_FILTERS: Partial<
         },
         ...(SONG_LIST_FILTERS[ServerType.JELLYFIN] || []),
     ],
+    [ServerType.MUSIC032]: [],
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -721,6 +781,7 @@ const PLAYLIST_SONG_LIST_FILTERS: Partial<
     Record<ServerType, Array<{ defaultOrder: SortOrder; name: string; value: string }>>
 > = {
     [ServerType.JELLYFIN]: CLIENT_SIDE_SONG_FILTERS,
+    [ServerType.MUSIC032]: CLIENT_SIDE_SONG_FILTERS,
     [ServerType.NAVIDROME]: CLIENT_SIDE_SONG_FILTERS,
     [ServerType.PLEX]: CLIENT_SIDE_SONG_FILTERS,
     [ServerType.SUBSONIC]: CLIENT_SIDE_SONG_FILTERS,
@@ -754,6 +815,23 @@ const ALBUM_ARTIST_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.DESC,
             name: i18n.t('filter.recentlyAdded'),
             value: AlbumArtistListSort.RECENTLY_ADDED,
+        },
+    ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: AlbumArtistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.albumCount'),
+            value: AlbumArtistListSort.ALBUM_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.songCount'),
+            value: AlbumArtistListSort.SONG_COUNT,
         },
     ],
     [ServerType.NAVIDROME]: [
@@ -854,6 +932,23 @@ const ARTIST_LIST_FILTERS: Partial<
             value: ArtistListSort.RECENTLY_ADDED,
         },
     ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: ArtistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.albumCount'),
+            value: ArtistListSort.ALBUM_COUNT,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.songCount'),
+            value: ArtistListSort.SONG_COUNT,
+        },
+    ],
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.DESC,
@@ -932,6 +1027,13 @@ const GENRE_LIST_FILTERS: Partial<
             value: GenreListSort.NAME,
         },
     ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: GenreListSort.NAME,
+        },
+    ],
     [ServerType.NAVIDROME]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -988,6 +1090,23 @@ const PLAYLIST_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.name'),
             value: PlaylistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.songCount'),
+            value: PlaylistListSort.SONG_COUNT,
+        },
+    ],
+    [ServerType.MUSIC032]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: PlaylistListSort.NAME,
+        },
+        {
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.duration'),
+            value: PlaylistListSort.DURATION,
         },
         {
             defaultOrder: SortOrder.DESC,
@@ -1052,6 +1171,18 @@ const RADIO_LIST_FILTERS: Partial<
     Record<ServerType, Array<{ defaultOrder: SortOrder; name: string; value: string }>>
 > = {
     [ServerType.JELLYFIN]: [
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.id'),
+            value: RadioListSort.ID,
+        },
+        {
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.name'),
+            value: RadioListSort.NAME,
+        },
+    ],
+    [ServerType.MUSIC032]: [
         {
             defaultOrder: SortOrder.ASC,
             name: i18n.t('filter.id'),
