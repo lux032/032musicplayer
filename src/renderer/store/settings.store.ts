@@ -1331,7 +1331,7 @@ const initialState: SettingsState = {
         type: FontType.BUILT_IN,
     },
     general: {
-        accent: 'rgb(53, 116, 252)',
+        accent: '#5b47e0',
         albumBackground: false,
         albumBackgroundBlur: 6,
         albumGroupImageSize: 0,
@@ -1356,7 +1356,7 @@ const initialState: SettingsState = {
         enableGridMultiSelect: false,
         externalLinks: true,
         followCurrentSong: true,
-        followSystemTheme: false,
+        followSystemTheme: true,
         fullscreenAutoOpenTimeout: 0,
         genreTarget: GenreTarget.TRACK,
         homeFeature: true,
@@ -1429,10 +1429,10 @@ const initialState: SettingsState = {
             skipForwardSeconds: 10,
         },
         spotify: true,
-        theme: AppTheme.DEFAULT_DARK,
-        themeDark: AppTheme.DEFAULT_DARK,
-        themeLight: AppTheme.DEFAULT_LIGHT,
-        useThemeAccentColor: false,
+        theme: AppTheme.MUSIC032_LIGHT,
+        themeDark: AppTheme.MUSIC032_DARK,
+        themeLight: AppTheme.MUSIC032_LIGHT,
+        useThemeAccentColor: true,
         useThemePrimaryShade: true,
         volumeWheelStep: 5,
         volumeWidth: 70,
@@ -2931,10 +2931,27 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                     });
                 }
 
+                if (version < 35) {
+                    // 032: move users still on the stock Feishin look to the 032 themes.
+                    const toMusic032 = (theme: string) => {
+                        if (theme === AppTheme.DEFAULT_DARK) return AppTheme.MUSIC032_DARK;
+                        if (theme === AppTheme.DEFAULT_LIGHT) return AppTheme.MUSIC032_LIGHT;
+                        return theme;
+                    };
+                    state.general.theme = toMusic032(state.general.theme);
+                    state.general.themeDark = toMusic032(state.general.themeDark);
+                    state.general.themeLight = toMusic032(state.general.themeLight);
+
+                    if (state.general.accent === 'rgb(53, 116, 252)') {
+                        state.general.accent = '#5b47e0';
+                        state.general.useThemeAccentColor = true;
+                    }
+                }
+
                 return persistedState;
             },
             name: 'store_settings',
-            version: 34,
+            version: 35,
         },
     ),
 );

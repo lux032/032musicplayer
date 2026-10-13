@@ -45,8 +45,8 @@ export const useRemoteSettingsPush = () => {
 
         const settings = { accent, primaryShade, useThemeAccentColor, useThemePrimaryShade };
         remote.updateAccentColor({
-            dark: resolveThemePrimaryColor(AppTheme.DEFAULT_DARK, settings),
-            light: resolveThemePrimaryColor(AppTheme.DEFAULT_LIGHT, settings),
+            dark: resolveThemePrimaryColor(AppTheme.MUSIC032_DARK, settings),
+            light: resolveThemePrimaryColor(AppTheme.MUSIC032_LIGHT, settings),
         });
     }, [isRemoteEnabled, accent, primaryShade, useThemeAccentColor, useThemePrimaryShade]);
 };

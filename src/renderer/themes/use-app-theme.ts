@@ -17,6 +17,8 @@ import { AppTheme, AppThemeConfiguration } from '/@/shared/themes/app-theme-type
 import { FontType } from '/@/shared/types/types';
 
 export const THEME_DATA = [
+    { label: '032 Dark', type: 'dark', value: AppTheme.MUSIC032_DARK },
+    { label: '032 Light', type: 'light', value: AppTheme.MUSIC032_LIGHT },
     { label: 'Default Dark', type: 'dark', value: AppTheme.DEFAULT_DARK },
     { label: 'Default Light', type: 'light', value: AppTheme.DEFAULT_LIGHT },
     { label: 'Nord', type: 'dark', value: AppTheme.NORD },

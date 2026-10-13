@@ -194,16 +194,18 @@ const SeriesDetailRoute = () => {
                                         </div>
                                         <div className={styles.heroActions}>
                                             <Button
-                                                leftSection={<Icon icon="mediaPlay" />}
+                                                leftSection={
+                                                    <Icon fill="contrast" icon="mediaPlay" />
+                                                }
                                                 onClick={() => playSeries(id)}
-                                                variant="default"
+                                                variant="filled"
                                             >
                                                 {t('page.series.playAll')}
                                             </Button>
                                             <Button
                                                 leftSection={<Icon icon="playlistAdd" />}
                                                 onClick={() => playSeries(id, Play.LAST)}
-                                                variant="subtle"
+                                                variant="default"
                                             >
                                                 {t('page.series.addToQueue')}
                                             </Button>

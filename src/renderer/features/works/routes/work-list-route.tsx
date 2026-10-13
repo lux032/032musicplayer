@@ -101,6 +101,7 @@ const WorkListRoute = () => {
             >
                 <LibraryContainer>
                     <div className={styles.page} style={{ paddingTop: '3rem' }}>
+                        <h1 className={styles.pageTitle}>{t('page.works.title')}</h1>
                         <div className={styles.toolbar}>
                             <TextInput
                                 aria-label={t('common.search', { postProcess: 'sentenceCase' })}

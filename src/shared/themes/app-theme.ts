@@ -23,6 +23,8 @@ import { highContrastLight } from '/@/shared/themes/high-contrast-light/high-con
 import { materialDark } from '/@/shared/themes/material-dark/material-dark';
 import { materialLight } from '/@/shared/themes/material-light/material-light';
 import { monokai } from '/@/shared/themes/monokai/monokai';
+import { music032Dark } from '/@/shared/themes/music032-dark/music032-dark';
+import { music032Light } from '/@/shared/themes/music032-light/music032-light';
 import { nightOwl } from '/@/shared/themes/night-owl/night-owl';
 import { nord } from '/@/shared/themes/nord/nord';
 import { oneDark } from '/@/shared/themes/one-dark/one-dark';
@@ -57,6 +59,8 @@ export const appTheme: Record<AppTheme, AppThemeConfiguration> = {
     [AppTheme.MATERIAL_DARK]: materialDark,
     [AppTheme.MATERIAL_LIGHT]: materialLight,
     [AppTheme.MONOKAI]: monokai,
+    [AppTheme.MUSIC032_DARK]: music032Dark,
+    [AppTheme.MUSIC032_LIGHT]: music032Light,
     [AppTheme.NIGHT_OWL]: nightOwl,
     [AppTheme.NORD]: nord,
     [AppTheme.ONE_DARK]: oneDark,
@@ -87,7 +91,7 @@ const resolveThemeConfig = (theme: string): AppThemeConfiguration | undefined =>
 };
 
 export const getAppTheme = (theme: AppTheme | string): AppThemeConfiguration => {
-    const themeConfig = resolveThemeConfig(theme) ?? appTheme[AppTheme.DEFAULT_DARK];
+    const themeConfig = resolveThemeConfig(theme) ?? appTheme[AppTheme.MUSIC032_DARK];
 
     return {
         app: merge({}, defaultTheme.app, themeConfig.app),

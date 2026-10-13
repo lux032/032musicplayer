@@ -124,7 +124,7 @@ export const SpotlightSeriesPane = ({
                     </div>
                     <div className={styles.heroActions}>
                         <Button
-                            leftSection={<Icon icon="mediaPlay" />}
+                            leftSection={<Icon fill="contrast" icon="mediaPlay" />}
                             onClick={() => playWorks(pane.workIds)}
                             variant="filled"
                         >

@@ -126,6 +126,7 @@ const SeriesListRoute = () => {
             >
                 <LibraryContainer>
                     <div className={styles.page} style={{ paddingTop: '3rem' }}>
+                        <h1 className={styles.pageTitle}>{t('page.series.title')}</h1>
                         {isUnsupported ? (
                             <SeriesUnsupported />
                         ) : (

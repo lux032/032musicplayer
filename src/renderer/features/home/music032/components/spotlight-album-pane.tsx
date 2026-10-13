@@ -167,7 +167,7 @@ const SpotlightAlbumPaneInner = ({
                         {pane.focus === 'listening' && resumeSong ? (
                             <>
                                 <Button
-                                    leftSection={<Icon icon="mediaPlay" />}
+                                    leftSection={<Icon fill="contrast" icon="mediaPlay" />}
                                     onClick={() => playSongs([resumeSong])}
                                     variant="filled"
                                 >
@@ -182,7 +182,7 @@ const SpotlightAlbumPaneInner = ({
                         ) : (
                             <>
                                 <Button
-                                    leftSection={<Icon icon="mediaPlay" />}
+                                    leftSection={<Icon fill="contrast" icon="mediaPlay" />}
                                     onClick={() => playAlbum(album.id)}
                                     variant="filled"
                                 >

@@ -1,7 +1,16 @@
 .page {
     display: grid;
     gap: 28px;
-    padding-bottom: 5rem;
+    padding: 0 2rem 5rem;
+}
+
+.page-title {
+    margin: 0 0 -8px;
+    font-size: clamp(1.9rem, 2.8vw, 2.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--theme-colors-foreground);
+    letter-spacing: -0.02em;
 }
 
 /* ------------------------------------------------------------ toolbar */
@@ -123,7 +132,7 @@
     text-decoration: none;
     outline: 1px solid alpha(var(--theme-colors-foreground-muted), 0.18);
     outline-offset: -1px;
-    background: var(--theme-colors-surface);
+    background: var(--m032-surface, var(--theme-colors-surface));
     border-radius: 12px;
     transition: outline-color 0.2s ease;
 }
@@ -249,7 +258,7 @@
     width: 34px;
     height: 34px;
     padding: 0;
-    color: #fff;
+    color: var(--theme-colors-primary-contrast);
     cursor: pointer;
     background: var(--theme-colors-primary);
     border: none;
@@ -514,7 +523,7 @@
     text-decoration: none;
     outline: 1px solid alpha(var(--theme-colors-foreground-muted), 0.18);
     outline-offset: -1px;
-    background: var(--theme-colors-surface);
+    background: var(--m032-surface, var(--theme-colors-surface));
     border-radius: 12px;
     transition: outline-color 0.2s ease;
 }

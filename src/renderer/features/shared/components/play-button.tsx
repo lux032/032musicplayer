@@ -58,6 +58,8 @@ export const PlayTextButton = ({
                 label: styles.wideTextButtonLabel,
                 root: styles.wideTextButton,
             }}
+            // Marks the page's main Play action (no custom children) so themes can accent it.
+            data-primary={props.children ? undefined : true}
             variant="subtle"
             {...props}
         >

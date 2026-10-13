@@ -34,6 +34,8 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 | `src/renderer/features/radio/components/radio-route-guard.tsx` | `/radio` 直接访问在无电台能力时重定向主页 |
 | `scripts/music032/playback-reporter.test.mjs` | 上报状态机单元测试，`pnpm test:music032`（需 Node >= 22.18） |
 | `scripts/music032/playing-indicator.test.mjs` | 播放态判定纯函数 + 作品/系列→曲目会话映射的单元测试 |
+| `src/shared/themes/music032-light/`、`music032-dark/` | 032 Light / 032 Dark 内置主题，配色取自 032 网页 `internal/http/assets/tokens.css`（中性灰阶 + 紫色单一强调：浅 `#5b47e0` / 深 `#8d7dff`，深色主题强调色上用深色字 `#140f33`） |
+| `src/shared/themes/music032/` | 两套 032 主题共用：`music032-tokens.ts` 输出 `--m032-*` 补充 token（fill / line / panel / accent-soft 等），`music032_overrides.css` 按 `data-theme^='music032'` 覆盖壳层（侧栏同底、右面板与播放条面板色、侧栏选中灰底紫图标、浮层面板色+细边+阴影、输入框聚焦紫边、选中行紫色浅底、裸链接颜色） |
 | `MUSIC032_CHANGES.md` | 本文件 |
 
 这些文件依赖的共享接口（如 `usePlayerEvents`、`InternalControllerEndpoint`、
@@ -126,6 +128,17 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - `src/preload/mpv-player.ts`：`mpvPlayerListener` 增加 `rendererBuffering`、`rendererLoadError`。
 - `PLAYER_ERROR` 只在"最终失败、准备跳过或暂停"的位置发出，**不要**放在网络重试分支里。
 - `use-scrobble.ts` **没有改**：032 的 `controller.scrobble` 是空操作，也不声明 `REPORT_PLAYBACK`。
+
+### 主题与配色（对齐 032 网页）
+- `app-theme-types.ts` / `app-theme.ts`：注册 `MUSIC032_DARK` / `MUSIC032_LIGHT`，未知主题回退改为 032 Dark；`use-app-theme.ts` 的 `THEME_DATA` 把两套主题排在最前。
+- `settings.store.ts`：默认跟随系统、浅/深分别 032 Light / 032 Dark、`useThemeAccentColor: true`、默认强调色 `#5b47e0`；迁移 v35 把仍在 Default Dark / Light 的用户换到对应 032 主题，强调色仍为 Feishin 默认蓝时一并换成紫色并启用主题强调色。
+- `theme-settings.tsx`：强调色色板首位加 032 紫。
+- 远程控制（`src/remote/app.tsx`、`use-remote-settings-push.tsx`）改用 032 主题。
+- 032 页面卡片上的悬浮播放键文字色由 `#fff` 改为 `--theme-colors-primary-contrast`，深色主题下保持可读。
+- 第二轮对照网页逐页修正：裸链接改为继承文字色、悬停才变紫；按钮改胶囊；详情页“播放”为紫色实底、“下一首播放 / 最后播放”为灰底；已收藏心形改红色（`state-error`）；缺图占位改浅灰块；表头改次要色；页头数量改纯文字；标签 Pill 灰底无边框；分段控件改灰底胶囊 + 浮起选中项；播放条空闲时播放键保持墨色。
+- 为让主题能精确定位，`shared/components/icon/icon.tsx` 给 svg 加 `data-icon={icon}`；`play-button.tsx` 的 `PlayTextButton` 在默认“播放”（无自定义 children）上加 `data-primary`。两者对其他主题无视觉影响。
+- 作品 / 系列页：`.page` 补左右 2rem 内边距（此前贴边、右侧数量被裁），列表页加页面标题；作品 / 系列详情与主页聚焦卡的“播放全部 / 播放”为 `filled` + 实心播放图标，“加入队列”为 `default` 灰底；聚焦卡、作品卡、系列横幅 / 行底色改用 `--m032-surface`（缺省回退 `--theme-colors-surface`）。
+- 覆盖样式依赖 CSS Modules 固定类名 `fs-[name]-[local]`（`electron.vite.config.ts` / `web.vite.config.ts`），重命名相关组件或类名时需同步 `music032_overrides.css`。
 
 ### 应用身份
 - `electron-builder.yml`、`electron-builder-alpha.yml`、`electron-builder-beta.yml`：`appId: org.lux032.musicplayer032`，`productName: 032musicplayer`，`publish.repo: 032musicplayer`。

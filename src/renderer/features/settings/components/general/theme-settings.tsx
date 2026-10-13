@@ -336,13 +336,14 @@ export const ThemeSettings = memo(() => {
                             });
                         }}
                         swatches={[
+                            'rgb(91, 71, 224)',
                             'rgb(53, 116, 252)',
                             'rgb(240, 170, 22)',
                             'rgb(29, 185, 84)',
                             'rgb(214, 81, 63)',
                             'rgb(170, 110, 216)',
                         ]}
-                        swatchesPerRow={5}
+                        swatchesPerRow={6}
                         withEyeDropper={false}
                     />
                 </Stack>

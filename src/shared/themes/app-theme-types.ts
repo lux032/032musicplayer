@@ -22,6 +22,8 @@ export enum AppTheme {
     MATERIAL_DARK = 'materialDark',
     MATERIAL_LIGHT = 'materialLight',
     MONOKAI = 'monokai',
+    MUSIC032_DARK = 'music032Dark',
+    MUSIC032_LIGHT = 'music032Light',
     NIGHT_OWL = 'nightOwl',
     NORD = 'nord',
     ONE_DARK = 'oneDark',

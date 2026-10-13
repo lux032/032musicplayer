@@ -22,10 +22,10 @@ export const App = () => {
         reconnect();
     }, [reconnect]);
 
-    const { mode, theme } = useAppTheme(isDark ? AppTheme.DEFAULT_DARK : AppTheme.DEFAULT_LIGHT);
+    const { mode, theme } = useAppTheme(isDark ? AppTheme.MUSIC032_DARK : AppTheme.MUSIC032_LIGHT);
 
     // Overrides the primary color useAppTheme() just set from the static
-    // Default Light/Dark theme file with the desktop's actual accent/shade-
+    // 032 Light/Dark theme file with the desktop's actual accent/shade-
     // derived value (see use-remote-settings-push.tsx) — must run after
     // useAppTheme's own effect to win, which it does since this hook is
     // called later in the same component.

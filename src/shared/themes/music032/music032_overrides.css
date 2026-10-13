@@ -1,0 +1,294 @@
+/* stylelint-disable selector-class-pattern */
+
+/*
+ * Chrome overrides shared by the 032 Light / 032 Dark themes, aligned with the
+ * 032 web UI (032music-server DESIGN.md). Colors come from the theme's
+ * --theme-colors-* plus the --m032-* tokens emitted by music032-tokens.ts.
+ * Scoped to data-theme so nothing leaks if the stylesheet ever lingers.
+ *
+ * Rules: neutral grays carry the interface; the violet accent marks only the
+ * primary action, playback and selection; floating layers are panel color
+ * with a thin line and a soft offset shadow.
+ */
+
+:root[data-theme^='music032'][data-mantine-color-scheme] {
+    --theme-colors-border: var(--m032-line);
+    --mantine-primary-color-contrast: var(--m032-on-accent);
+}
+
+:root[data-theme^='music032'] ::selection {
+    color: inherit;
+    background: var(--m032-accent-soft-strong);
+}
+
+/* Shell: sidebar shares the content background, side panel and player bar are panel color. */
+:root[data-theme^='music032'] .fs-player-bar-module-container {
+    background: var(--m032-panel);
+    border-top: 1px solid var(--m032-line);
+}
+
+:root[data-theme^='music032'] .fs-right-sidebar-module-right-sidebar-container {
+    background: var(--m032-panel);
+    border-left-color: var(--m032-line);
+}
+
+:root[data-theme^='music032'] .fs-right-sidebar-module-right-sidebar-container.fs-right-sidebar-module-vertical-layout {
+    border-top-color: var(--m032-line);
+}
+
+/* Sidebar: selected item is a gray fill with a violet icon, text stays ink. */
+:root[data-theme^='music032'] .fs-sidebar-item-module-link:hover {
+    background: var(--m032-surface-hover);
+}
+
+:root[data-theme^='music032'] .fs-sidebar-item-module-link.fs-sidebar-item-module-active {
+    color: var(--theme-colors-foreground);
+    background: var(--m032-surface-hover);
+
+    .fs-sidebar-icon-module-wrapper {
+        color: var(--theme-colors-primary-filled);
+    }
+}
+
+/* Secondary controls are filled gray; hover goes one step darker (light) or lighter (dark). */
+:root[data-theme^='music032'] .fs-button-module-root[data-variant='default'],
+:root[data-theme^='music032'] .fs-action-icon-module-root[data-variant='default'] {
+    color: var(--theme-colors-foreground);
+    background: var(--m032-fill);
+
+    &:hover,
+    &:focus-visible {
+        background: var(--m032-fill-hover);
+    }
+}
+
+:root[data-theme^='music032'] .fs-button-module-root[data-variant='filled'] {
+    --button-color: var(--m032-on-accent);
+
+    color: var(--m032-on-accent);
+
+    &:focus-visible {
+        outline: 2px solid var(--theme-colors-primary-filled);
+    }
+}
+
+/* Inputs: gray fill at rest, surface + accent line + soft ring on focus. */
+:root[data-theme^='music032'] .fs-text-input-module-input,
+:root[data-theme^='music032'] .fs-password-input-module-input,
+:root[data-theme^='music032'] .fs-number-input-module-input,
+:root[data-theme^='music032'] .fs-textarea-module-input,
+:root[data-theme^='music032'] .fs-select-module-input,
+:root[data-theme^='music032'] .fs-autocomplete-module-input,
+:root[data-theme^='music032'] .fs-multi-select-module-input,
+:root[data-theme^='music032'] .fs-tags-input-module-input {
+    transition:
+        background-color 0.14s ease,
+        border-color 0.14s ease,
+        box-shadow 0.14s ease;
+
+    &[data-variant='default']:hover {
+        background: var(--m032-fill-hover);
+    }
+
+    &:focus,
+    &:focus-within,
+    &:focus-visible {
+        background: var(--m032-panel);
+        border-color: var(--theme-colors-primary-filled);
+        box-shadow: 0 0 0 3px var(--m032-accent-soft-strong);
+    }
+}
+
+/* Floating layers: panel color, thin line, soft shadow. */
+:root[data-theme^='music032'] .fs-context-menu-module-content,
+:root[data-theme^='music032'] .fs-dropdown-menu-module-menu-dropdown,
+:root[data-theme^='music032'] .fs-popover-module-dropdown,
+:root[data-theme^='music032'] .fs-select-module-dropdown,
+:root[data-theme^='music032'] .fs-autocomplete-module-dropdown,
+:root[data-theme^='music032'] .fs-multi-select-module-dropdown,
+:root[data-theme^='music032'] .fs-tags-input-module-dropdown,
+:root[data-theme^='music032'] .fs-hover-card-module-dropdown {
+    color: var(--theme-colors-foreground);
+    background: var(--m032-panel);
+    border: 1px solid var(--m032-line);
+    box-shadow: var(--m032-shadow-pop);
+    filter: none;
+}
+
+:root[data-theme^='music032'] .fs-context-menu-module-item[data-highlighted],
+:root[data-theme^='music032'] .fs-context-menu-module-item:hover,
+:root[data-theme^='music032'] .fs-dropdown-menu-module-menu-item:hover,
+:root[data-theme^='music032'] .fs-select-module-option:hover,
+:root[data-theme^='music032'] .fs-autocomplete-module-option:hover,
+:root[data-theme^='music032'] .fs-multi-select-module-option:hover,
+:root[data-theme^='music032'] .fs-tags-input-module-option:hover {
+    background: var(--m032-fill);
+}
+
+:root[data-theme^='music032'] .fs-modal-module-content,
+:root[data-theme^='music032'] .fs-dialog-module-root {
+    color: var(--theme-colors-foreground);
+    background: var(--m032-panel);
+    border: 1px solid var(--m032-line);
+    border-radius: var(--theme-radius-lg);
+    box-shadow: var(--m032-shadow-pop);
+}
+
+:root[data-theme^='music032'] .fs-modal-module-header {
+    background: var(--m032-panel);
+}
+
+/* Links read as text (titles, artists, albums) and only take the accent on hover, as on the web. */
+:root[data-theme^='music032'] a:not([class]) {
+    color: inherit;
+    text-underline-offset: 0.18em;
+
+    &:hover {
+        color: var(--theme-colors-primary-filled);
+    }
+}
+
+:root[data-theme^='music032'] .fs-toast-module-root {
+    background: var(--m032-panel);
+    border: 1px solid var(--m032-line);
+    box-shadow: var(--m032-shadow-pop);
+}
+
+/* Tooltips are ink chips, like native titles on the web. */
+:root[data-theme^='music032'] .fs-tooltip-module-tooltip {
+    color: var(--theme-colors-background);
+    background: var(--theme-colors-foreground);
+}
+
+/* Lists: hover is the gray fill, selected rows carry the accent tint. */
+:root[data-theme^='music032'] .fs-item-table-list-column-module-container.fs-item-table-list-column-module-data-row.fs-item-table-list-column-module-row-selected {
+    --m032-row-selected: color-mix(
+        in srgb,
+        var(--theme-colors-primary-filled) 12%,
+        var(--theme-colors-background)
+    );
+
+    background-color: var(--m032-row-selected);
+    box-shadow:
+        1px 0 0 0 var(--m032-row-selected),
+        -1px 0 0 0 var(--m032-row-selected);
+}
+
+/* Cards: covers carry a soft shadow instead of a gray tile. */
+:root[data-theme^='music032'] .fs-item-card-module-image-container {
+    box-shadow: var(--m032-shadow-card);
+}
+
+/* Controls are pills, like every button on the web. Subtle/transparent buttons (nav items, toolbars) keep their shape. */
+:root[data-theme^='music032'] .fs-button-module-root:not([data-variant='subtle'], [data-variant='transparent']),
+:root[data-theme^='music032'] .fs-action-icon-module-root:is([data-variant='default'], [data-variant='filled'], [data-variant='outline']) {
+    border-radius: 999px;
+}
+
+/* Detail header actions: Play is the one accent button, play next / last are gray fills. */
+:root[data-theme^='music032'] .fs-play-button-module-wide-text-button.fs-play-button-module-unthemed {
+    background: var(--m032-fill);
+    border-radius: 999px;
+
+    &[data-variant='subtle']:hover,
+    &[data-variant='subtle']:active,
+    &[data-variant='subtle']:focus-visible {
+        background: var(--m032-fill-hover) !important;
+    }
+
+    .fs-play-button-module-wide-text-button-label,
+    svg {
+        color: var(--theme-colors-foreground);
+        fill: var(--theme-colors-foreground);
+    }
+
+    &[data-primary='true'] {
+        background: var(--theme-colors-primary-filled);
+
+        &[data-variant='subtle']:hover,
+        &[data-variant='subtle']:active,
+        &[data-variant='subtle']:focus-visible {
+            background: var(--m032-accent-hover) !important;
+        }
+
+        .fs-play-button-module-wide-text-button-label,
+        svg {
+            color: var(--m032-on-accent);
+            fill: var(--m032-on-accent);
+        }
+    }
+}
+
+/* Favorited hearts are red, not accent, as on the web. */
+:root[data-theme^='music032'] svg[data-icon='favorite'].fs-icon-module-fill-primary {
+    color: var(--theme-colors-state-error);
+    fill: var(--theme-colors-state-error);
+}
+
+/* Missing artwork is a quiet gray tile, not a dark block. */
+:root[data-theme^='music032'] .fs-image-module-unloader {
+    background-color: var(--m032-fill);
+    opacity: 1;
+
+    svg {
+        color: var(--m032-line-strong);
+    }
+}
+
+/* The idle player keeps its ink play button. */
+:root[data-theme^='music032'] .fs-player-button-module-main[data-disabled='true'],
+:root[data-theme^='music032'] .fs-player-button-module-main:disabled {
+    opacity: 1;
+}
+
+/* Table headers are small muted labels. */
+:root[data-theme^='music032'] .fs-item-table-list-column-module-header-content {
+    font-weight: 600;
+    color: var(--theme-colors-foreground-muted);
+}
+
+/* Page header counts read as plain muted text beside the title. */
+:root[data-theme^='music032'] .fs-library-header-bar-module-header-container .fs-badge-module-root {
+    padding-inline: 2px;
+    font-size: var(--theme-font-size-md);
+    font-weight: 500;
+    color: var(--theme-colors-foreground-muted);
+    text-transform: none;
+    background: transparent;
+    border: 0;
+}
+
+/* Tags and chips: gray fill pills without outlines. */
+:root[data-theme^='music032'] .fs-pill-module-root {
+    background: var(--m032-fill);
+    border-color: transparent;
+    border-radius: 999px;
+
+    &.fs-pill-module-link:hover {
+        background: var(--m032-fill-hover);
+    }
+}
+
+/* Segmented tabs: gray pill track, the active tab is a raised surface pill. */
+:root[data-theme^='music032'] .fs-segmented-control-module-root {
+    --sc-radius: 999px;
+
+    padding: 3px;
+    background: var(--m032-fill);
+    border-radius: 999px;
+
+    .mantine-SegmentedControl-control::before {
+        display: none;
+    }
+}
+
+:root[data-theme^='music032'] .fs-segmented-control-module-label {
+    color: var(--m032-text-secondary);
+    border-radius: 999px;
+
+    &[data-active='true'] {
+        color: var(--theme-colors-foreground);
+        background-color: var(--m032-surface);
+        box-shadow: 0 1px 2px rgb(17 17 19 / 10%);
+    }
+}

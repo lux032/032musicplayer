@@ -195,16 +195,18 @@ const WorkDetailRoute = () => {
                                         </div>
                                         <div className={styles.heroActions}>
                                             <Button
-                                                leftSection={<Icon icon="mediaPlay" />}
+                                                leftSection={
+                                                    <Icon fill="contrast" icon="mediaPlay" />
+                                                }
                                                 onClick={() => playWorks([work.id])}
-                                                variant="default"
+                                                variant="filled"
                                             >
                                                 {t('page.works.playAll')}
                                             </Button>
                                             <Button
                                                 leftSection={<Icon icon="playlistAdd" />}
                                                 onClick={() => appendWorks([work.id])}
-                                                variant="subtle"
+                                                variant="default"
                                             >
                                                 {t('page.works.addToQueue')}
                                             </Button>

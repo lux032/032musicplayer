@@ -435,6 +435,7 @@ const _Icon = forwardRef<HTMLDivElement, IconProps>((props, ref) => {
     return (
         <IconComponent
             className={classNames}
+            data-icon={icon}
             fill={fill}
             ref={ref}
             size={isPredefinedSize(size) ? undefined : size}
