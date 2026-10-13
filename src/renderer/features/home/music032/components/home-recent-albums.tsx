@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { m032Context } from '/@/renderer/api/music032/music032-api';
-import { DataRow } from '/@/renderer/components/item-card/item-card';
+import { DataRow, getDataRows } from '/@/renderer/components/item-card/item-card';
 import { useDefaultItemListControls } from '/@/renderer/components/item-list/helpers/item-list-controls';
 import { HomeAlbumCard } from '/@/renderer/features/home/music032/components/home-album-card';
 import { HomeSection } from '/@/renderer/features/home/music032/components/home-section';
@@ -33,11 +33,8 @@ export const HomeRecentAlbums = ({ albums }: { albums: M032Album[] }) => {
                 format: (data) => (data as Album).name,
                 id: 'name',
             },
-            {
-                format: (data) => (data as Album).albumArtistName,
-                id: 'artists',
-                isMuted: true,
-            },
+            // feishin's album artist row: each artist links to its detail page.
+            getDataRows('poster').find((row) => row.id === 'albumArtists')!,
             {
                 format: (data) =>
                     t('page.home.music032.addedAt', {
