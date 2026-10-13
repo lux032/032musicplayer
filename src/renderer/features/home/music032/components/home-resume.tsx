@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useMemo } from 'react';
+import { CSSProperties, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
@@ -24,7 +24,7 @@ import { M032PlaybackRecord } from '/@/shared/api/music032/music032-types';
 import { Icon } from '/@/shared/components/icon/icon';
 import { LibraryItem, Song } from '/@/shared/types/domain-types';
 
-/** 接着听：未听完的曲目，从断点继续。 */
+/** 接着听：未听完的曲目，从断点继续；宽屏两列、按列填充。 */
 export const HomeResume = ({ records }: { records: M032PlaybackRecord[] }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
@@ -73,7 +73,10 @@ export const HomeResume = ({ records }: { records: M032PlaybackRecord[] }) => {
                     title={t('page.home.music032.resumeEmpty')}
                 />
             ) : (
-                <div className={styles.rows}>
+                <div
+                    className={clsx(styles.rows, styles.resumeRows)}
+                    style={{ '--rows': Math.ceil(items.length / 2) } as CSSProperties}
+                >
                     {items.map(({ percent, record, song }) => (
                         <ResumeRow
                             key={record.trackId}

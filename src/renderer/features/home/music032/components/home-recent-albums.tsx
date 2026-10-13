@@ -16,7 +16,7 @@ import { M032Album } from '/@/shared/api/music032/music032-types';
 import { Icon } from '/@/shared/components/icon/icon';
 import { Album } from '/@/shared/types/domain-types';
 
-/** 最近添加：入库时间倒序的专辑网格，列数随宽度 3 → 6。 */
+/** 最近添加：入库时间倒序的专辑，整行一排，列数随宽度 6 / 8 / 10（窄屏 3 列两排）。 */
 export const HomeRecentAlbums = ({ albums }: { albums: M032Album[] }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
