@@ -46,6 +46,7 @@
         "createPlaylistFromQueue": "根据队列创建 $t(entity.playlist, {\"count\": 1})"
     },
     "common": {
+        "audioQualityUpTo": "最高 {{quality}}",
         "increase": "提升",
         "rating": "评分",
         "bpm": "BPM",

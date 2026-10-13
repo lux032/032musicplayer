@@ -15,7 +15,7 @@ import {
     useGeneralSettings,
     usePlayerSong,
 } from '/@/renderer/store';
-import { formatPartialIsoDateUTC } from '/@/renderer/utils';
+import { formatAudioQuality, formatPartialIsoDateUTC } from '/@/renderer/utils';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Group } from '/@/shared/components/group/group';
 import { Stack } from '/@/shared/components/stack/stack';
@@ -84,7 +84,10 @@ export const SharedFullscreenPlayerMetadata = ({
     const hasMetadata =
         !isRadioActive && playerItems.some((i) => !i.disabled && builtDataItems[i.id]);
 
+    const audioQuality = isRadioActive ? null : formatAudioQuality(currentSong);
+
     const showMetadata =
+        Boolean(audioQuality) ||
         playerItems.some((i) => !i.disabled && builtDataItems[i.id]) ||
         showTitle ||
         showArtist ||
@@ -204,6 +207,11 @@ export const SharedFullscreenPlayerMetadata = ({
                                 {currentSong?.album}
                             </Text>
                         ))}
+                    {audioQuality && (
+                        <Text className={styles.audioQuality} isMuted isNoSelect size="md">
+                            {audioQuality}
+                        </Text>
+                    )}
                     {!isRadioActive && hasMetadata && (
                         <Group justify={metadataAlignment} mt="sm" w="100%">
                             {playerItems.map((i) => !i.disabled && builtDataItems[i.id])}

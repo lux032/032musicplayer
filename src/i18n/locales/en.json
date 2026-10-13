@@ -46,6 +46,7 @@
         }
     },
     "common": {
+        "audioQualityUpTo": "up to {{quality}}",
         "countSelected": "{{count}} selected",
         "explicitStatus": "Explicit status",
         "action_one": "Action",

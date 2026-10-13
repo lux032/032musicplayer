@@ -16,3 +16,8 @@
         font-size: 3.5vh;
     }
 }
+
+.audio-quality {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}

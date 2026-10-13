@@ -19,7 +19,7 @@ import {
     usePlayerData,
     usePlayerSong,
 } from '/@/renderer/store';
-import { formatPartialIsoDateUTC } from '/@/renderer/utils';
+import { formatAudioQuality, formatPartialIsoDateUTC } from '/@/renderer/utils';
 import { Badge } from '/@/shared/components/badge/badge';
 import { Center } from '/@/shared/components/center/center';
 import { Flex } from '/@/shared/components/flex/flex';
@@ -183,6 +183,7 @@ export const FullScreenPlayerImage = () => {
     };
 
     const showMetadata =
+        (!isRadioActive && Boolean(formatAudioQuality(currentSong))) ||
         playerItems.some((i) => !i.disabled && builtDataItems[i.id]) ||
         showTitle ||
         showArtist ||

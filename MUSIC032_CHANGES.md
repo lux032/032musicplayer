@@ -140,6 +140,11 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - 作品 / 系列页：`.page` 补左右 2rem 内边距（此前贴边、右侧数量被裁），列表页加页面标题；作品 / 系列详情与主页聚焦卡的“播放全部 / 播放”为 `filled` + 实心播放图标，“加入队列”为 `default` 灰底；聚焦卡、作品卡、系列横幅 / 行底色改用 `--m032-surface`（缺省回退 `--theme-colors-surface`）。
 - 覆盖样式依赖 CSS Modules 固定类名 `fs-[name]-[local]`（`electron.vite.config.ts` / `web.vite.config.ts`），重命名相关组件或类名时需同步 `music032_overrides.css`。
 
+### 音质信息与全屏封面
+- `src/renderer/utils/audio-quality.ts`：`formatAudioQuality` 输出 `FLAC / 24bit / 48kHz`（有损格式第二段为 kbps），`getAlbumAudioQuality` 汇总专辑曲目（不一致时取最高并标“最高”，i18n `common.audioQualityUpTo`）。
+- 播放条左侧第三行专辑名后、全屏播放器元数据区（不受“播放器项目”设置控制）、专辑详情页元数据行显示音质。
+- `music032-controller.ts` 的 `getImageUrl`：`size` 为 0（全屏播放器默认“原图”）时不带 `size` 参数，032 服务端会拒绝 `size=0`，之前导致全屏封面裂图。
+
 ### 应用身份
 - `electron-builder.yml`、`electron-builder-alpha.yml`、`electron-builder-beta.yml`：`appId: org.lux032.musicplayer032`，`productName: 032musicplayer`，`publish.repo: 032musicplayer`。
 - `package.json`：`productName: 032musicplayer`；新增脚本 `test:music032`。

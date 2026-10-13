@@ -29,6 +29,7 @@ import {
     useSetFullScreenPlayerStore,
     useSidebarImageEnabled,
 } from '/@/renderer/store';
+import { formatAudioQuality } from '/@/renderer/utils/audio-quality';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Center } from '/@/shared/components/center/center';
 import { Group } from '/@/shared/components/group/group';
@@ -56,6 +57,7 @@ export const LeftControls = () => {
     );
 
     const currentSong = usePlayerSong();
+    const audioQuality = formatAudioQuality(currentSong);
     const isRadioActive = useIsRadioActive();
     const { currentStationArt } = useRadioPlayer();
     const { bindings } = useHotkeySettings();
@@ -282,6 +284,7 @@ export const LeftControls = () => {
                                 className={clsx(
                                     styles.lineItem,
                                     styles.secondary,
+                                    styles.albumLine,
                                     PlaybackSelectors.songAlbum,
                                 )}
                                 onClick={stopPropagation}
@@ -302,6 +305,17 @@ export const LeftControls = () => {
                                 >
                                     {currentSong?.album || '—'}
                                 </Text>
+                                {audioQuality && (
+                                    <Text
+                                        className={styles.audioQuality}
+                                        component="span"
+                                        isMuted
+                                        isNoSelect
+                                        size="sm"
+                                    >
+                                        {audioQuality}
+                                    </Text>
+                                )}
                             </div>
                         </>
                     )}

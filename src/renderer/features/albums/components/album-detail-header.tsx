@@ -26,7 +26,12 @@ import {
     useShowRatings,
 } from '/@/renderer/store';
 import { useArtistRadioCount, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
-import { formatDurationString, formatPartialIsoDateUTC, formatSizeString } from '/@/renderer/utils';
+import {
+    formatDurationString,
+    formatPartialIsoDateUTC,
+    formatSizeString,
+    getAlbumAudioQuality,
+} from '/@/renderer/utils';
 import { normalizeReleaseTypes } from '/@/renderer/utils/normalize-release-types';
 import { hasFeature } from '/@/shared/api/utils';
 import { Group } from '/@/shared/components/group/group';
@@ -149,6 +154,7 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
             album.originalYear !== album.releaseYear;
 
         const playCount = album?.playCount;
+        const audioQuality = getAlbumAudioQuality(album.songs);
 
         const trackYearRangeDifferent = album.trackYearRange?.max !== album.trackYearRange?.min;
 
@@ -195,6 +201,12 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
                 {
                     id: 'duration',
                     value: formatDurationString(detailQuery?.data?.duration || 0),
+                },
+                {
+                    id: 'audioQuality',
+                    value: audioQuality?.mixed
+                        ? t('common.audioQualityUpTo', { quality: audioQuality.quality })
+                        : audioQuality?.quality,
                 },
                 {
                     id: 'explicitStatus',

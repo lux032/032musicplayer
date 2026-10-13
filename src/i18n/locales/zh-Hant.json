@@ -1,5 +1,6 @@
 {
     "common": {
+        "audioQualityUpTo": "最高 {{quality}}",
         "backward": "返回",
         "biography": "簡介",
         "bitrate": "位元率",

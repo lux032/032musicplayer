@@ -80,6 +80,23 @@
     }
 }
 
+/* album name shrinks with ellipsis, quality tag stays fully visible */
+.line-item.album-line {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+
+    > a {
+        min-width: 0;
+    }
+}
+
+.audio-quality {
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .joined-artists {
     display: block;
     overflow: hidden;
