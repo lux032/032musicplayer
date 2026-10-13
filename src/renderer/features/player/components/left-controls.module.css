@@ -80,27 +80,50 @@
     }
 }
 
-/* album name shrinks with ellipsis, quality tag stays fully visible */
-.line-item.album-line {
+/* quality pill stays fully visible, artist - album shrinks with ellipsis */
+.line-item.sub-line {
     display: flex;
-    gap: 0.5rem;
-    align-items: baseline;
-
-    > a {
-        min-width: 0;
-    }
+    gap: var(--theme-spacing-sm);
+    align-items: center;
 }
 
 .audio-quality {
     flex-shrink: 0;
+    padding: 0.1rem 0.45rem;
+    font-size: var(--theme-font-size-sm);
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    color: var(--theme-colors-foreground-muted);
     white-space: nowrap;
+    user-select: none;
+    background: var(--theme-colors-surface);
+    border-radius: var(--theme-radius-sm);
+}
+
+.sub-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--theme-colors-primary);
+    white-space: nowrap;
+
+    a,
+    span,
+    div,
+    p {
+        display: inline;
+        color: var(--theme-colors-primary);
+    }
+}
+
+.separator {
+    margin: 0 0.35em;
+    opacity: 0.8;
 }
 
 .joined-artists {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: inline;
 }
 
 .joined-artists,

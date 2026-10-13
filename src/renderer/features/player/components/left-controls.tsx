@@ -8,10 +8,7 @@ import { shallow } from 'zustand/shallow';
 import styles from './left-controls.module.css';
 
 import { ItemImage } from '/@/renderer/components/item-image/item-image';
-import {
-    JOINED_ARTISTS_MUTED_PROPS,
-    JoinedArtists,
-} from '/@/renderer/features/albums/components/joined-artists';
+import { JoinedArtists } from '/@/renderer/features/albums/components/joined-artists';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
 import { RadioMetadataDisplay } from '/@/renderer/features/player/components/radio-metadata-display';
 import {
@@ -216,10 +213,11 @@ export const LeftControls = () => {
                                     <Text
                                         className={PlaybackSelectors.songTitle}
                                         component={Link}
-                                        fw={500}
+                                        fw={700}
                                         isLink
                                         onContextMenu={handleToggleContextMenu}
                                         overflow="hidden"
+                                        size="lg"
                                         to={AppRoute.NOW_PLAYING}
                                     >
                                         {title || '—'}
@@ -259,63 +257,48 @@ export const LeftControls = () => {
                                 </Group>
                             </div>
                             <div
-                                className={clsx(
-                                    styles.lineItem,
-                                    styles.secondary,
-                                    PlaybackSelectors.songArtist,
-                                )}
+                                className={clsx(styles.lineItem, styles.subLine)}
                                 onClick={stopPropagation}
                             >
-                                <JoinedArtists
-                                    artistName={currentSong?.artistName || ''}
-                                    artists={artists || []}
-                                    linkProps={{
-                                        ...JOINED_ARTISTS_MUTED_PROPS.linkProps,
-                                        size: 'md',
-                                    }}
-                                    rootTextProps={{
-                                        ...JOINED_ARTISTS_MUTED_PROPS.rootTextProps,
-                                        className: styles.joinedArtists,
-                                        size: 'md',
-                                    }}
-                                />
-                            </div>
-                            <div
-                                className={clsx(
-                                    styles.lineItem,
-                                    styles.secondary,
-                                    styles.albumLine,
-                                    PlaybackSelectors.songAlbum,
-                                )}
-                                onClick={stopPropagation}
-                            >
-                                <Text
-                                    component={Link}
-                                    fw={500}
-                                    isLink
-                                    overflow="hidden"
-                                    size="md"
-                                    to={
-                                        currentSong?.albumId
-                                            ? generatePath(AppRoute.LIBRARY_ALBUMS_DETAIL, {
-                                                  albumId: currentSong.albumId,
-                                              })
-                                            : ''
-                                    }
-                                >
-                                    {currentSong?.album || '—'}
-                                </Text>
                                 {audioQuality && (
-                                    <Text
-                                        className={styles.audioQuality}
-                                        component="span"
-                                        isMuted
-                                        isNoSelect
-                                        size="sm"
-                                    >
-                                        {audioQuality}
-                                    </Text>
+                                    <span className={styles.audioQuality}>{audioQuality}</span>
                                 )}
+                                <div className={styles.subText}>
+                                    <span className={PlaybackSelectors.songArtist}>
+                                        <JoinedArtists
+                                            artistName={currentSong?.artistName || ''}
+                                            artists={artists || []}
+                                            linkProps={{ fw: 400, size: 'md' }}
+                                            rootTextProps={{
+                                                className: styles.joinedArtists,
+                                                fw: 400,
+                                                size: 'md',
+                                            }}
+                                        />
+                                    </span>
+                                    {currentSong?.album && (
+                                        <>
+                                            <span className={styles.separator}>·</span>
+                                            <Text
+                                                className={PlaybackSelectors.songAlbum}
+                                                component={Link}
+                                                fw={400}
+                                                isLink
+                                                size="md"
+                                                to={
+                                                    currentSong.albumId
+                                                        ? generatePath(
+                                                              AppRoute.LIBRARY_ALBUMS_DETAIL,
+                                                              { albumId: currentSong.albumId },
+                                                          )
+                                                        : ''
+                                                }
+                                            >
+                                                {currentSong.album}
+                                            </Text>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </>
                     )}
