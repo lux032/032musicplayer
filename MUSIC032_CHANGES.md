@@ -1,17 +1,15 @@
-# 032music 分支 - 相对 plex 分支的改动
+# 032musicplayer - 相对 Feishin 的改动记录
 
-本文件是 `032music` 分支相对 `plex` 分支所有有意改动的清单。`plex` 分支相对上游
-的改动见 [PLEX_CHANGES.md](PLEX_CHANGES.md)（本分支不修改该文件）。
+**032musicplayer** 是基于 Feishin 二次开发的 032 Music Server 桌面客户端，复用
+Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 
-同步链路：`upstream/development` → `plex` → `032music`。每次把 `plex` 合入
-`032music` 前后都对照本文件，决定冲突时保留什么。
-
-本分支产物是 **032musicplayer**：基于 Feishin 二次开发的 032 Music Server 桌面
-客户端，复用 Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
+项目最初从 Feishin 的 Plex 分叉（`lux032/feishin` 的 `plex` 分支）派生，2026-10 起
+**独立维护，不再跟随上游**，也不再合并 Feishin 或 plex 分支。本文件记录相对 Feishin
+原版的有意改动，方便定位代码和日后需要回看或移植上游修复时参考。
 
 ---
 
-## 新增文件（仅 032music 分支）
+## 新增文件
 
 | 文件 | 用途 |
 |------|------|
@@ -38,14 +36,12 @@
 | `scripts/music032/playing-indicator.test.mjs` | 播放态判定纯函数 + 作品/系列→曲目会话映射的单元测试 |
 | `MUSIC032_CHANGES.md` | 本文件 |
 
-**合并规则：** 这些文件 plex 和上游都没有，不会冲突。plex 或上游重命名了它们依赖的
-类型或 hook（如 `usePlayerEvents`、`InternalControllerEndpoint`、`ServerFeature`）时，
-以 `pnpm run typecheck` 报错为准跟着改。032 主页额外依赖：`MemoizedItemCard` /
+这些文件依赖的共享接口（如 `usePlayerEvents`、`InternalControllerEndpoint`、
+`ServerFeature`）改名或改签名时，以 `pnpm run typecheck` 报错为准跟着改。032 主页额外依赖：`MemoizedItemCard` /
 `useDefaultItemListControls` / `ContextMenuController.call` / `useSetFavorite` /
 `useResumePosition`（续播靠 `Song.resumePositionMs`）/ `getTitlePath` / `ItemImage` /
 `usePlayerSong` / `usePlayerStatus`（正在播放标识），作品 / 系列页还依赖
-`NativeScrollArea` / `LibraryContainer` / `LibraryHeaderBar` / `AnimatedPage`，
-上游改这些接口时同样跟着改。
+`NativeScrollArea` / `LibraryContainer` / `LibraryHeaderBar` / `AnimatedPage`。
 
 ---
 
@@ -54,52 +50,43 @@
 ### `src/shared/types/domain-types.ts`、`src/shared/types/types.ts`
 - 两个 `ServerType` 枚举都加 `MUSIC032 = 'music032'`；`toServerType` 加对应分支。
 - `ServerListItemWithCredential` 加可选字段 `mediaToken`；`AuthenticationResponse` 加可选字段 `mediaToken`。
-- **合并规则：** 保留 `MUSIC032` 和 `mediaToken`，其余全部取对方的改动。
 
 ### `src/renderer/api/controller.ts`
 - 分发表加 `music032: Music032Controller`。
-- **合并规则：** 冲突时保留 `music032` 两行（类型和值），其余取对方。
 
 ### `src/renderer/features/home/routes/home-route.tsx`
 - 032 主页分流：原 `HomeRoute` 主体原样改名为 `DefaultHomeContent`，新的 `HomeRoute`
   只做分流：服务端类型是 `MUSIC032` 时渲染 `<Music032HomeRoute fallback={<DefaultHomeContent />} />`，
   后端没有主页接口（`/api/v1/home` 返回 404/501）时由 `Music032HomeRoute` 渲染 fallback。
-- **合并规则：** 保留分流分支和 `DefaultHomeContent` 的导出关系；上游改默认主页内容时，
-  改动落在 `DefaultHomeContent` 里，跟随上游。
 
 ### `src/renderer/api/query-keys.ts`
 - 追加 `home` 命名空间（`overview` / `works` / `songs` / `chronicle` / `root`），
   供 032 主页使用；`batch` / `generation` / `type` / `year` 进 key。
 - 追加 `music032`（`capabilities`）、`works`（`list` / `detail` / `albums` / `tracks` / `root`）、
   `series`（同名）命名空间，供作品页、系列页和能力位查询使用。
-- **合并规则：** 保留这些条目，其余取对方。
 
 ### `src/renderer/router/routes.ts`、`src/renderer/router/app-router.tsx`
 - `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL`；
   四条路由挂在 `Music032RouteGuard` 下（非 MUSIC032 重定向主页）。
 - `/radio` 路由包一层 `RadioRouteGuard`（无 `INTERNET_RADIO` 能力位时重定向主页）。
-- **合并规则：** 保留新增的枚举值、lazy import 和路由块，其余取对方。
 
 ### `src/shared/types/features-types.ts` 和各 controller 的 `getServerInfo`
 - `ServerFeature` 新增 `INTERNET_RADIO = 'internetRadio'`；Plex / Jellyfin / Subsonic
   controller 声明 `[1]`（Navidrome 继承 Subsonic 的 features），music032 **不声明**。
-- **合并规则：** 保留枚举值和各 controller 里那一行声明。
 
 ### `src/renderer/store/auth.store.ts`
 - `logout()` 同时清空 `mediaToken`。401 不清空媒体凭据，所以 API Token 被轮换后，重新登录只需要填 API Token。
-- **合并规则：** 保留 `server.mediaToken = undefined;` 这一行。
 
 ### 登录和服务器表单
 `add-server-form.tsx`、`edit-server-form.tsx`、`login-route.tsx`、`server-required.tsx`
 - 032 走 token 登录：API Token 复用 Plex 的 token 字段（添加表单用 `token`，编辑表单和 server-lock 登录用 `password`），另加 `mediaToken` 字段，提交时带上 `mediaToken`，并把 `data.mediaToken` 写回服务器记录。
 - 编辑表单里两个凭据留空都表示沿用已保存的值。
+- 改 Plex 的表单逻辑时，同步检查 `isMusic032` 那一支是否需要同样改动。
 - `server-required.tsx`：缺 `credential` 或 `mediaToken` 时视为会话过期，点击后打开编辑表单重新登录。
-- **合并规则：** 保留所有 `MUSIC032` / `isMusic032` / `mediaToken` 分支；对方改了 Plex 分支的表单逻辑时，同步检查 032 分支是否需要同样改动。
 
 ### 图标三元表达式
 `server-list.tsx`、`server-selector.tsx`、`server-selector-items.tsx`、`collapsed-sidebar.tsx`、`server-required.tsx`
 - 在 `PLEX` 分支前插入 `MUSIC032 ? Music032Logo`。
-- **合并规则：** 保留 `Music032Logo` 的 import 和那一个分支。
 
 ### 侧边栏组件（`sidebar.tsx`、`collapsed-sidebar.tsx`、`mobile-sidebar.tsx`、`sidebar-icon.tsx`、`collapsed-sidebar-item.tsx`）
 - 条目 memo 的过滤条件加 `(item.id !== 'Radio' || radioSupported)`，
@@ -108,30 +95,28 @@
   （id 为 `M032Works` / `M032Series`，不进持久化设置），条目渲染透传 `onClick`。
 - `sidebar-icon.tsx`：`LIBRARY_WORKS` / `LIBRARY_SERIES` 两个 case（RiBookOpen / RiStack）。
 - `collapsed-sidebar-item.tsx`：props 增加可选 `onClick`（原本就透传其余 props 到 Flex）。
-- **合并规则：** 保留 `radioSupported` / `music032Items` 两行引用、过滤条件、splice 块、
-  两个图标 case 和 `onClick` prop；其余取对方。
 
 ### `src/renderer/features/settings/components/general/sidebar-reorder.tsx`
 - 电台不受支持时从排序列表里隐藏 Radio 行；`setItemsPreservingRadio` 保证隐藏期间
   重排不丢持久化的 Radio 设置项。
-- **合并规则：** 保留 `radioSupported` 相关两段。
 
 ### `src/renderer/features/shared/components/list-sort-by-dropdown.tsx`
 - 每张排序表都加 `[ServerType.MUSIC032]`，只列出 032 真正支持的排序（专辑：名称、最近添加、最近播放、发行日期、发行年份；歌曲：专辑、名称、播放次数、最近播放、发行日期、年份；艺人：名称、专辑数、歌曲数；歌单：名称、时长、歌曲数）。
 - `ListSortByDropdown` 直接用 `FILTERS[itemType][server.type]` 取表，**缺一项就会运行时报错**。
-- **合并规则：** 保留所有 `MUSIC032` 条目；上游新增一张排序表时必须补一条 `MUSIC032`（不支持就给 `[]`）。
+  新增排序表时必须补一条 `MUSIC032`（不支持就给 `[]`）。
 
 ### `src/renderer/features/shared/components/list-filters.tsx`
 - `MUSIC032` 复用 Subsonic 的专辑、歌曲筛选器（收藏、艺人、流派、年份区间）。
-- `ListFilters` 外层的 `display: contents` 包裹 div 来自 plex 分支（修复冷缓存首次加载
-  时筛选侧栏 `removeChild` 崩溃，见 `PLEX_CHANGES.md`），不是本分支的改动。
-- **合并规则：** 保留 `MUSIC032` 条目；其余取 plex（包括该包裹 div）。
+- `ListFilters` 外层包一层 `<div style={{ display: 'contents' }}>`，修复 Feishin 原有的
+  bug：调用方都把 `ListFilters` 直接放在 `ScrollArea` 里，OverlayScrollbars 会把根节点
+  的子节点挪进它生成的 viewport；冷缓存时 Suspense 的 fallback 被挪走，筛选数据回来后
+  React `removeChild` 抛 `NotFoundError`，筛选侧栏崩进错误边界（F5 后必现）。
+  别去掉这层 div。
 
 ### `src/i18n/locales/en.json`、`zh-Hans.json`、`zh-Hant.json`
 - 新增 `error.music032*`（5 个）和 `form.addServer.input_music032*`（5 个）。
 - 新增 `page.home.music032*`（032 主页全部文案，含页签、区块标题、用途角色短标签、
   空库引导、页脚统计）。
-- **合并规则：** 接受对方的措辞改动；对方删掉这些 key 时要加回来。
 
 ### 播放上报接线
 - `src/renderer/features/player/components/audio-players.tsx`：在 `<ScrobbleHook />` 后挂载 `<Music032PlaybackReporterHook />`。
@@ -139,7 +124,7 @@
 - `src/renderer/features/player/audio-player/engine/web-player-engine.tsx`：活动播放器的 `onBuffer`/`onBufferEnd` 发出 `PLAYER_BUFFERING`；`handleOnError` 的最终失败分支（重试用尽或无法解码）在活动播放器上发出 `PLAYER_ERROR`。
 - `src/main/features/core/player/index.ts`：`createMpv` 里观察 `paused-for-cache`，转发为 `renderer-player-buffering`；监听 node-mpv 原始 socket 的 `end-file`，`reason === 'error'` 时转发为 `renderer-player-load-error`。
 - `src/preload/mpv-player.ts`：`mpvPlayerListener` 增加 `rendererBuffering`、`rendererLoadError`。
-- **合并规则：** 这些都是追加的几行，保留即可。上游改了 `handleOnError` 的结构时，把 `PLAYER_ERROR` 放回"最终失败、准备跳过或暂停"的位置，**不要**放在网络重试分支里。上游改了 `createMpv` 时，保留 `observeProperty('paused-for-cache')` 和 socket `message` 监听。
+- `PLAYER_ERROR` 只在"最终失败、准备跳过或暂停"的位置发出，**不要**放在网络重试分支里。
 - `use-scrobble.ts` **没有改**：032 的 `controller.scrobble` 是空操作，也不声明 `REPORT_PLAYBACK`。
 
 ### 应用身份
@@ -148,7 +133,6 @@
 - `src/main/fork-config.ts`：`APP_ID`、`UPDATER_OWNER`、`UPDATER_REPO`、`AUTO_UPDATE_ENABLED = false`。发版仓库是私有的，electron-updater 读私有仓库需要把 GitHub Token 打进安装包，所以默认关闭自动更新。
 - `src/main/index.ts`：从 fork-config 读取 `APP_ID`、`UPDATER_REPO`，`new AppUpdater()` 额外受 `AUTO_UPDATE_ENABLED` 控制。
 - `README.md`：标题和开头注明 032musicplayer 基于 Feishin 二次开发。
-- **合并规则：** 这些文件的 plex 版本是 `Feishin-plex` / `org.jeffvli.feishin` / `repo: feishin`，**合并时一律保留 032music 的值**，其余字段（文件列表、target、mac 配置等）取 plex。`fork-config.ts` 在本分支整个文件以本分支为准。`main/index.ts` 只保留 fork-config 的 import 和三处引用，其余取 plex。
 - 未改：Linux 的 `org.jeffvli.feishin.metainfo.xml`（只在打 Linux 包时用到）。
 
 ---
@@ -223,13 +207,27 @@
 
 ---
 
-## 合并流程
+## 继承自 Plex 分叉的改动
+
+派生时 plex 分支已有的改动（原 `PLEX_CHANGES.md`，已删除），现在属于本项目代码：
+
+- **Plex 服务端支持：** `src/renderer/api/plex/plex-api.ts`、`plex-controller.ts`（实现全部
+  controller 接口；`getSimilarSongs` 走 Plex 的 `/nearest` 声波相似接口，非 200 时返回 `[]`，
+  不抛错）；`ServerType.PLEX` 枚举、`controller.ts` 分发、`list-filters.tsx` 里
+  `FILTERS[PLEX]` 复用 Subsonic 筛选器（`FILTERS[serverType]?.[itemType]` 容忍没有筛选器的类型）。
+- **评分：** `right-controls.tsx` 的 `RatingButton` 用 `hasFeature(server, ServerFeature.STAR_RATING)`
+  判断（Plex 声明 `STAR_RATING`）；`FavoriteButton` 没有 Plex 守卫。
+- **MPV：** `src/main/features/core/player/index.ts` 里 Plex 直连流 URL 的无损播放处理。
+- **i18n：** `toast.plexTokenAuthenticationFailed`、`toast.plexTokenRequired`、
+  `form.addServer.discoveredServer`（Plex 服务器发现）。
+- **发布：** `fork-config.ts`、`.github/workflows/publish-*.yml`、`electron-builder*.yml`
+  指向 `lux032` 账号（032 的具体值见上文"应用身份"）。
+
+---
+
+## 提交前检查
 
 ```bash
-git fetch origin
-git switch 032music
-git merge origin/plex          # 不直接合并 upstream
-# 按本文件的规则解决冲突
 pnpm run typecheck
 pnpm run lint
 pnpm run test:music032
