@@ -61,6 +61,23 @@ after each upstream merge to decide what to keep, remove, or update.
   imports.  Keep `hasFeature()` for `showRating`.  Do **not** re-add the Plex
   guard.
 
+### `src/renderer/features/shared/components/list-filters.tsx`
+- `FILTERS[ServerType.PLEX]` reuses the Subsonic album/song filters;
+  `FILTERS[serverType]?.[itemType]` and the `FilterComponent ? ... : null`
+  guards tolerate server types without filters.
+- `ListFilters` wraps its error boundary + `Suspense` in a
+  `<div style={{ display: 'contents' }}>`. Upstream bug fix: every caller
+  renders `ListFilters` directly inside `ScrollArea`, whose OverlayScrollbars
+  moves the root's children into a generated viewport. On a cold query cache
+  the `Suspense` fallback spinner was moved there, and React's
+  `scrollArea.removeChild(spinner)` threw `NotFoundError` when the filters
+  resolved (crash on the album/song list sidebar after F5). Candidate to send
+  upstream.
+- **Merge rule:** keep the `PLEX` entry, the optional-chaining guards and the
+  `display: contents` wrapper unless upstream fixes the same crash another way
+  (for example by keeping `ScrollArea` children out of OverlayScrollbars' DOM
+  moves). Take all other upstream changes.
+
 ### `src/i18n/locales/zh-Hant.json` (and other locale files)
 - Plex-specific keys preserved:
   - `toast.plexTokenAuthenticationFailed`
