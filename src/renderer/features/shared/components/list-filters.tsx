@@ -128,17 +128,22 @@ export const ListFilters = ({ itemType }: ListFiltersProps) => {
     const disableGenreFilter =
         pageKey === ItemListKey.GENRE_ALBUM || pageKey === ItemListKey.GENRE_SONG;
 
+    // Callers render this inside ScrollArea, whose OverlayScrollbars moves its direct children
+    // into a generated viewport. A stable host element keeps the Suspense fallback out of that
+    // move, so React can still remove it when the filters resolve.
     return (
-        <ComponentErrorBoundary>
-            <Suspense fallback={<Spinner container />}>
-                {FilterComponent ? (
-                    <FilterComponent
-                        disableArtistFilter={disableArtistFilter}
-                        disableGenreFilter={disableGenreFilter}
-                    />
-                ) : null}
-            </Suspense>
-        </ComponentErrorBoundary>
+        <div style={{ display: 'contents' }}>
+            <ComponentErrorBoundary>
+                <Suspense fallback={<Spinner container />}>
+                    {FilterComponent ? (
+                        <FilterComponent
+                            disableArtistFilter={disableArtistFilter}
+                            disableGenreFilter={disableGenreFilter}
+                        />
+                    ) : null}
+                </Suspense>
+            </ComponentErrorBoundary>
+        </div>
     );
 };
 
