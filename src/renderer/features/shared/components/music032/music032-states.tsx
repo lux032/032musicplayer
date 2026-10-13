@@ -10,7 +10,7 @@ import { Skeleton } from '/@/shared/components/skeleton/skeleton';
 export const Music032PageSkeleton = () => (
     <div className={styles.skeletonGrid}>
         {Array.from({ length: 12 }, (_, i) => (
-            <Skeleton borderRadius="10px" height={180} key={i} />
+            <Skeleton borderRadius="10px" height={225} key={i} />
         ))}
     </div>
 );

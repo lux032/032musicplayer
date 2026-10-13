@@ -722,7 +722,7 @@
 .work-card {
     position: relative;
     display: grid;
-    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-columns: 76px minmax(0, 1fr);
     gap: 14px;
     align-items: center;
     padding: 12px;
@@ -745,8 +745,8 @@
     position: relative;
     display: grid;
     place-items: center;
-    width: 92px;
-    aspect-ratio: 1;
+    width: 76px;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     color: var(--theme-colors-foreground-muted);
     background: alpha(var(--theme-colors-foreground-muted), 0.12);

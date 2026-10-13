@@ -13,6 +13,7 @@ import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
 import {
+    insertMusic032SidebarItems,
     Music032SidebarItem,
     useMusic032SidebarItems,
 } from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
@@ -62,8 +63,6 @@ export const CollapsedSidebar = () => {
             'Artists-all': t('page.sidebar.artists'),
             Collections: t('page.sidebar.collections'),
             Favorites: t('page.sidebar.favorites'),
-            Folders: t('page.sidebar.folders'),
-            Genres: t('page.sidebar.genres'),
             Home: t('page.sidebar.home'),
             'Now Playing': t('page.sidebar.nowPlaying'),
             Playlists: t('page.sidebar.playlists'),
@@ -87,12 +86,7 @@ export const CollapsedSidebar = () => {
                     item.label,
             }));
 
-        if (music032Items.length) {
-            const genresIndex = items.findIndex((item) => item.id === 'Genres');
-            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
-        }
-
-        return items;
+        return insertMusic032SidebarItems(items, music032Items);
     }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (

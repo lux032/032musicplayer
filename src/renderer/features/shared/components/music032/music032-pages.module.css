@@ -33,15 +33,16 @@
 /* ------------------------------------------------------------ hero */
 .hero {
     display: grid;
-    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-columns: 180px minmax(0, 1fr);
     gap: 24px;
     align-items: end;
 }
 
+/* 作品海报是竖版（2:3），与专辑的方形封面区分。 */
 .hero-poster {
     position: relative;
-    width: 200px;
-    aspect-ratio: 1;
+    width: 180px;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     color: var(--theme-colors-foreground-muted);
     background: alpha(var(--theme-colors-foreground-muted), 0.12);
@@ -209,6 +210,10 @@
     background: alpha(var(--theme-colors-foreground-muted), 0.12);
     border-radius: 10px;
     transition: box-shadow 0.2s ease;
+}
+
+.poster-art.is-portrait {
+    aspect-ratio: 2 / 3;
 }
 
 .poster-card:hover .poster-art {
@@ -516,7 +521,7 @@
 
 .series-row {
     display: grid;
-    grid-template-columns: 64px minmax(0, 1fr) auto;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
     gap: 14px;
     align-items: center;
     padding: 10px 14px;
@@ -534,8 +539,8 @@
 
 .series-row-poster {
     position: relative;
-    width: 64px;
-    aspect-ratio: 1;
+    width: 48px;
+    aspect-ratio: 2 / 3;
     overflow: hidden;
     color: var(--theme-colors-foreground-muted);
     background: alpha(var(--theme-colors-foreground-muted), 0.12);

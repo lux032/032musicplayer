@@ -14,7 +14,6 @@ import { PlayButton } from '/@/renderer/features/shared/components/play-button';
 import { useContainerQuery } from '/@/renderer/hooks';
 import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServer, useCurrentServerId } from '/@/renderer/store';
-import { Button } from '/@/shared/components/button/button';
 import { Group } from '/@/shared/components/group/group';
 import { TextTitle } from '/@/shared/components/text-title/text-title';
 import { Genre, GenreListSort, Played, SortOrder } from '/@/shared/types/domain-types';
@@ -122,14 +121,6 @@ export const FeaturedGenres = () => {
                         <TextTitle fw={700} isNoSelect order={3}>
                             {t('entity.genre', { count: 2 })}
                         </TextTitle>
-                        <Button
-                            component={Link}
-                            size="compact-sm"
-                            to={AppRoute.LIBRARY_GENRES}
-                            variant="subtle"
-                        >
-                            {t('action.viewMore')}
-                        </Button>
                     </Group>
                     <div className={styles.grid}>
                         {genresWithColors.map((genre) => (

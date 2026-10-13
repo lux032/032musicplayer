@@ -15,8 +15,6 @@ const SIDEBAR_ITEMS: Array<[string, string]> = [
     [SidebarItem.ARTISTS, 'page.sidebar.albumArtists'],
     [SidebarItem.ARTISTS_ALL, 'page.sidebar.artists'],
     [SidebarItem.FAVORITES, 'page.sidebar.favorites'],
-    [SidebarItem.FOLDERS, 'page.sidebar.folders'],
-    [SidebarItem.GENRES, 'page.sidebar.genres'],
     [SidebarItem.HOME, 'page.sidebar.home'],
     [SidebarItem.NOW_PLAYING, 'page.sidebar.nowPlaying'],
     [SidebarItem.PLAYLISTS, 'page.sidebar.playlists'],

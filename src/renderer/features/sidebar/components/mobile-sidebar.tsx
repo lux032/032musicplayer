@@ -5,6 +5,7 @@ import styles from './mobile-sidebar.module.css';
 
 import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import {
+    insertMusic032SidebarItems,
     Music032SidebarItem,
     useMusic032SidebarItems,
 } from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
@@ -44,7 +45,6 @@ export const MobileSidebar = () => {
             Artists: t('page.sidebar.albumArtists'),
             'Artists-all': t('page.sidebar.artists'),
             Favorites: t('page.sidebar.favorites'),
-            Genres: t('page.sidebar.genres'),
             Home: t('page.sidebar.home'),
             'Now Playing': t('page.sidebar.nowPlaying'),
             Playlists: t('page.sidebar.playlists'),
@@ -71,12 +71,7 @@ export const MobileSidebar = () => {
                     item.label,
             }));
 
-        if (music032Items.length) {
-            const genresIndex = items.findIndex((item) => item.id === 'Genres');
-            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
-        }
-
-        return items;
+        return insertMusic032SidebarItems(items, music032Items);
     }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (

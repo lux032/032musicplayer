@@ -1019,8 +1019,6 @@ export enum SidebarItem {
     ARTISTS_ALL = 'Artists-all',
     COLLECTIONS = 'Collections',
     FAVORITES = 'Favorites',
-    FOLDERS = 'Folders',
-    GENRES = 'Genres',
     HOME = 'Home',
     NOW_PLAYING = 'Now Playing',
     PLAYLISTS = 'Playlists',
@@ -1205,18 +1203,6 @@ export const sidebarItems: SidebarItemType[] = [
         id: 'Artists-all',
         label: i18n.t('page.sidebar.artists'),
         route: AppRoute.LIBRARY_ARTISTS,
-    },
-    {
-        disabled: false,
-        id: 'Genres',
-        label: i18n.t('page.sidebar.genres'),
-        route: AppRoute.LIBRARY_GENRES,
-    },
-    {
-        disabled: false,
-        id: 'Folders',
-        label: i18n.t('page.sidebar.folders'),
-        route: AppRoute.LIBRARY_FOLDERS,
     },
     {
         disabled: true,
@@ -2948,10 +2934,17 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                     }
                 }
 
+                if (version < 36) {
+                    // 032: genre and folder list pages are no longer offered in navigation.
+                    state.general.sidebarItems = state.general.sidebarItems.filter(
+                        (item) => item.id !== 'Genres' && item.id !== 'Folders',
+                    );
+                }
+
                 return persistedState;
             },
             name: 'store_settings',
-            version: 35,
+            version: 36,
         },
     ),
 );

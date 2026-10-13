@@ -40,7 +40,7 @@ export const WorkPosterCard = ({
 
     return (
         <Link className={styles.posterCard} title={title} to={to}>
-            <div className={styles.posterArt}>
+            <div className={`${styles.posterArt} ${styles.isPortrait}`}>
                 <ItemImage
                     containerClassName={styles.imgBox}
                     id={posterPath}

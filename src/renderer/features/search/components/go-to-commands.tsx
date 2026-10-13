@@ -53,12 +53,6 @@ export const GoToCommands = ({ handleClose, setPages, setQuery }: GoToCommandsPr
                 <Command.Item onSelect={() => goTo(AppRoute.LIBRARY_ALBUM_ARTISTS)}>
                     {t('page.sidebar.albumArtists')}
                 </Command.Item>
-                <Command.Item onSelect={() => goTo(AppRoute.LIBRARY_GENRES)}>
-                    {t('page.sidebar.genres')}
-                </Command.Item>
-                <Command.Item onSelect={() => goTo(AppRoute.LIBRARY_FOLDERS)}>
-                    {t('page.sidebar.folders')}
-                </Command.Item>
                 <Command.Item onSelect={() => goTo(AppRoute.PLAYLISTS)}>
                     {t('page.sidebar.playlists')}
                 </Command.Item>

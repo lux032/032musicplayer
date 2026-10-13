@@ -12,6 +12,20 @@ export type Music032SidebarItem = SidebarItemType & {
     onClick?: MouseEventHandler;
 };
 
+const LIBRARY_ANCHOR_IDS = new Set(['Albums', 'Artists', 'Artists-all', 'Tracks']);
+
+/** 把 032 注入项插到最后一个曲库入口（专辑/曲目/艺术家）之后，找不到就追加到末尾。 */
+export const insertMusic032SidebarItems = (
+    items: Music032SidebarItem[],
+    music032Items: Music032SidebarItem[],
+): Music032SidebarItem[] => {
+    if (!music032Items.length) return items;
+    const anchorIndex = items.findLastIndex((item) => LIBRARY_ANCHOR_IDS.has(item.id));
+    const next = [...items];
+    next.splice(anchorIndex >= 0 ? anchorIndex + 1 : next.length, 0, ...music032Items);
+    return next;
+};
+
 /**
  * MUSIC032 专属的侧边栏注入项（作品、系列、播放记录），不进用户的 sidebarItems 持久化
  * 设置。后端没有系列接口时（能力位缺失），系列入口直接打开网页端。

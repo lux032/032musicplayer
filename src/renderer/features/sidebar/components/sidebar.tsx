@@ -13,6 +13,7 @@ import {
 } from '/@/renderer/features/radio/hooks/use-radio-player';
 import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
 import {
+    insertMusic032SidebarItems,
     Music032SidebarItem,
     useMusic032SidebarItems,
 } from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
@@ -79,8 +80,6 @@ export const Sidebar = () => {
             'Artists-all': t('page.sidebar.artists'),
             Collections: t('page.sidebar.collections'),
             Favorites: t('page.sidebar.favorites'),
-            Folders: t('page.sidebar.folders'),
-            Genres: t('page.sidebar.genres'),
             Home: t('page.sidebar.home'),
             'Now Playing': t('page.sidebar.nowPlaying'),
             Playlists: t('page.sidebar.playlists'),
@@ -112,12 +111,7 @@ export const Sidebar = () => {
                     item.label,
             }));
 
-        if (music032Items.length) {
-            const genresIndex = items.findIndex((item) => item.id === 'Genres');
-            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
-        }
-
-        return items;
+        return insertMusic032SidebarItems(items, music032Items);
     }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     /* Library accordion: only items with a route (exclude Collections section) */
