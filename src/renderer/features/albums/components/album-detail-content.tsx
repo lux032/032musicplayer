@@ -4,6 +4,7 @@ import type {
 } from '/@/renderer/components/item-list/helpers/item-list-state';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
+import formatDuration from 'format-duration';
 import { ReactNode, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { generatePath, useParams } from 'react-router';
@@ -21,6 +22,10 @@ import { ItemTableListColumn } from '/@/renderer/components/item-list/item-table
 import { ItemControls } from '/@/renderer/components/item-list/types';
 import { albumQueries } from '/@/renderer/features/albums/api/album-api';
 import { AlbumInfiniteCarousel } from '/@/renderer/features/albums/components/album-infinite-carousel';
+import {
+    Music032AlbumInspector,
+    Music032AlbumTieupScope,
+} from '/@/renderer/features/albums/music032/music032-album-inspector';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
 import {
     ListConfigMenu,
@@ -34,7 +39,7 @@ import { ListSortOrderToggleButtonControlled } from '/@/renderer/features/shared
 import { FILTER_KEYS, searchLibraryItems } from '/@/renderer/features/shared/utils';
 import { useHotkeys } from '/@/renderer/hooks/use-hotkeys';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer, usePlayerSong } from '/@/renderer/store';
+import { useCurrentServer, useCurrentServerWithCredential, usePlayerSong } from '/@/renderer/store';
 import { useExternalLinks, useSettingsStore } from '/@/renderer/store/settings.store';
 import { sentenceCase, titleCase } from '/@/renderer/utils';
 import { replaceURLWithHTMLLinks } from '/@/renderer/utils/linkify';
@@ -512,6 +517,10 @@ export const AlbumDetailContent = () => {
 
     const mbzId = detailQuery?.data?.mbzId;
 
+    const serverWithCredential = useCurrentServerWithCredential();
+    const music032Server =
+        serverWithCredential?.type === ServerType.MUSIC032 ? serverWithCredential : null;
+
     return (
         <div className={styles.contentContainer}>
             <div className={styles.detailContainer}>
@@ -522,13 +531,25 @@ export const AlbumDetailContent = () => {
                 )}
                 <div className={styles.contentLayout}>
                     <div className={styles.songsColumn}>
-                        {detailQuery?.data?.songs && detailQuery.data.songs.length > 0 && (
-                            <AlbumDetailSongsTable songs={detailQuery.data.songs} />
-                        )}
+                        {detailQuery?.data?.songs &&
+                            detailQuery.data.songs.length > 0 &&
+                            (music032Server ? (
+                                <Music032AlbumTieupScope albumId={albumId} server={music032Server}>
+                                    <AlbumDetailSongsTable songs={detailQuery.data.songs} />
+                                </Music032AlbumTieupScope>
+                            ) : (
+                                <AlbumDetailSongsTable songs={detailQuery.data.songs} />
+                            ))}
                     </div>
                     <div className={styles.metadataColumn}>
-                        <AlbumMetadataGenres genres={detailQuery?.data?.genres} />
-                        <AlbumMetadataTags album={detailQuery?.data} />
+                        {music032Server ? (
+                            <Music032AlbumInspector albumId={albumId} server={music032Server} />
+                        ) : (
+                            <>
+                                <AlbumMetadataGenres genres={detailQuery?.data?.genres} />
+                                <AlbumMetadataTags album={detailQuery?.data} />
+                            </>
+                        )}
                         <AlbumMetadataExternalLinks
                             albumArtist={detailQuery?.data?.albumArtistName}
                             albumName={detailQuery?.data?.name}
@@ -559,6 +580,8 @@ export const AlbumDetailContent = () => {
     );
 };
 
+const ALBUM_TRACK_COMPACT_ROW_HEIGHT = 54;
+
 interface AlbumDetailSongsTableProps {
     songs: Song[];
 }
@@ -585,6 +608,11 @@ const DiscGroupRow = ({ discGroup, groupItems, internalState, t }: DiscGroupRowP
     }).length;
 
     const isAllSelected = selectedCount === groupItems.length;
+
+    const discDuration = groupItems.reduce<number>(
+        (sum, item) => sum + ((item as null | Song)?.duration || 0),
+        0,
+    );
 
     void selectionVersion;
 
@@ -620,15 +648,25 @@ const DiscGroupRow = ({ discGroup, groupItems, internalState, t }: DiscGroupRowP
     };
 
     return (
-        <Group align="center" h="100%" px="md" w="100%">
+        // Single line on purpose: the table draws this row across the pinned and
+        // main grids, so it must not wrap to the first column's width.
+        <Group align="center" h="100%" px="md" w="100%" wrap="nowrap">
             <Checkbox
                 checked={isAllSelected}
                 id={`disc-${discGroup.discNumber}`}
+                // Plain spans: Mantine Text sets text-wrap on every element, which
+                // would override the nowrap below.
                 label={
-                    <Text component="label" size="sm" truncate>
-                        {t('common.disc')} {discGroup.discNumber}
-                        {discGroup.discSubtitle && ` - ${discGroup.discSubtitle}`}
-                    </Text>
+                    <span className={styles.discLabel}>
+                        <strong>
+                            {t('common.disc')} {discGroup.discNumber}
+                            {discGroup.discSubtitle && ` - ${discGroup.discSubtitle}`}
+                        </strong>
+                        <span className={styles.discSummary}>
+                            {t('entity.trackWithCount', { count: groupItems.length })}
+                            {discDuration > 0 && ` · ${formatDuration(discDuration)}`}
+                        </span>
+                    </span>
                 }
                 onChange={handleCheckboxChange}
                 size="xs"
@@ -954,6 +992,11 @@ const AlbumDetailSongsTable = ({ songs }: AlbumDetailSongsTableProps) => {
                 onColumnReordered={handleColumnReordered}
                 onColumnResized={handleColumnResized}
                 overrideControls={overrideControls}
+                // The track list is the page's main target: give compact rows the
+                // 032 web track-row height so play/select/tieup hits are easy.
+                rowHeight={
+                    tableConfig.size === 'compact' ? ALBUM_TRACK_COMPACT_ROW_HEIGHT : undefined
+                }
                 size={tableConfig.size}
             />
         </Stack>

@@ -1540,7 +1540,10 @@ const AlbumSection = memo(function AlbumSection({
     );
 });
 
-import { useArtistAlbumsGrouped } from '/@/renderer/features/artists/hooks/use-artist-albums-grouped';
+import {
+    isMusic032Discography,
+    useArtistAlbumsGrouped,
+} from '/@/renderer/features/artists/hooks/use-artist-albums-grouped';
 
 interface ArtistAlbumsProps {
     albumsQuery: UseSuspenseQueryResult<AlbumListResponse, Error>;
@@ -1656,7 +1659,9 @@ const ArtistAlbums = ({ albumsQuery, order }: ArtistAlbumsProps) => {
                         }
                         sortOrder={sortOrder}
                     />
-                    <GroupingTypeSelector />
+                    {!isMusic032Discography(albumsQuery.data?.items || []) && (
+                        <GroupingTypeSelector />
+                    )}
                 </Group>
                 {releaseTypeEntries.length > 0 && (
                     <div className={styles.albumSectionContainer} ref={cq.ref}>

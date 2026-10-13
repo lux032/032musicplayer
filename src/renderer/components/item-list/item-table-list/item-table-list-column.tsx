@@ -112,10 +112,10 @@ const ItemTableListColumnBase = (props: ItemTableListColumn) => {
             // - Otherwise, render in the first column of the main grid
             const hasPinnedLeftColumns = (props.pinnedLeftColumnCount || 0) > 0;
             const isFirstPinnedLeftColumn = props.columnIndex === 0 && hasPinnedLeftColumns;
-            const isMainGridFirstColumn =
-                !hasPinnedLeftColumns &&
-                (props.columnIndex === (props.pinnedLeftColumnCount || 0) ||
-                    (props.columnIndex === 0 && (props.pinnedLeftColumnCount || 0) === 0));
+            // With pinned columns the header is drawn in both grids (like the sticky
+            // group row): the pinned container clips its copy to the pinned width,
+            // and the main grid copy, shifted left by that width, shows the rest.
+            const isMainGridFirstColumn = props.columnIndex === (props.pinnedLeftColumnCount || 0);
 
             // Render group header content in the first pinned left column (if exists) or first main grid column
             if (isFirstPinnedLeftColumn || isMainGridFirstColumn) {
@@ -188,11 +188,13 @@ const ItemTableListColumnBase = (props: ItemTableListColumn) => {
         }
 
         // For main grid, use negative margin to extend left
+        const totalWidth = props.calculatedColumnWidths?.reduce((sum, width) => sum + width, 0);
         return (
             <div
                 style={{
                     ...props.style,
                     marginLeft: pinnedLeftWidth > 0 ? `-${pinnedLeftWidth}px` : 0,
+                    ...(pinnedLeftWidth > 0 && totalWidth ? { width: `${totalWidth}px` } : {}),
                 }}
             >
                 {groupHeader}

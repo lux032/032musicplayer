@@ -13,6 +13,7 @@ import {
 } from '/@/renderer/components/item-list/item-table-list/item-table-list-column';
 import { useIsActiveRow } from '/@/renderer/components/item-list/item-table-list/item-table-list-context';
 import { JoinedArtists } from '/@/renderer/features/albums/components/joined-artists';
+import { Music032TitleTieup } from '/@/renderer/features/albums/music032/music032-track-tieup';
 import { ExplicitIndicator } from '/@/shared/components/explicit-indicator/explicit-indicator';
 import { Icon } from '/@/shared/components/icon/icon';
 import { Text } from '/@/shared/components/text/text';
@@ -120,54 +121,56 @@ export const QueueSongTitleArtistColumn = (props: ItemTableListInnerColumn) => {
                 containerStyle={{ '--row-height': `${rowHeight}px` } as CSSProperties}
                 {...props}
             >
-                <div
-                    className={clsx(styles.textContainer, styles[alignClass], {
-                        [styles.active]: isActive,
-                        [styles.compact]: props.size === 'compact',
-                    })}
-                >
-                    <Text
-                        className={clsx({
+                <Music032TitleTieup songId={song?.id}>
+                    <div
+                        className={clsx(styles.textContainer, styles[alignClass], {
                             [styles.active]: isActive,
                             [styles.compact]: props.size === 'compact',
-                            [styles.large]: props.size === 'large',
-                            [styles.title]: true,
                         })}
-                        isNoSelect
-                        size="md"
-                        {...titleLinkProps}
                     >
-                        <ExplicitIndicator explicitStatus={song?.explicitStatus} />
-                        {row.name as string}
-                        {song?.trackSubtitle && props.itemType !== LibraryItem.QUEUE_SONG && (
-                            <Text
-                                className={clsx({
-                                    [styles.active]: isActive,
-                                })}
-                                component="span"
-                                isMuted
-                                size="sm"
-                            >
-                                {' ('}
-                                {song.trackSubtitle}
-                                {')'}
-                            </Text>
-                        )}
-                    </Text>
-                    <div className={styles.artists}>
-                        <JoinedArtists
-                            artistName={item.artistName}
-                            artists={item.artists}
-                            linkProps={{ fw: 400, isMuted: true }}
-                            rootTextProps={{
-                                className: styles.artists,
-                                fw: 400,
-                                isMuted: true,
-                                size: 'sm',
-                            }}
-                        />
+                        <Text
+                            className={clsx({
+                                [styles.active]: isActive,
+                                [styles.compact]: props.size === 'compact',
+                                [styles.large]: props.size === 'large',
+                                [styles.title]: true,
+                            })}
+                            isNoSelect
+                            size="md"
+                            {...titleLinkProps}
+                        >
+                            <ExplicitIndicator explicitStatus={song?.explicitStatus} />
+                            {row.name as string}
+                            {song?.trackSubtitle && props.itemType !== LibraryItem.QUEUE_SONG && (
+                                <Text
+                                    className={clsx({
+                                        [styles.active]: isActive,
+                                    })}
+                                    component="span"
+                                    isMuted
+                                    size="sm"
+                                >
+                                    {' ('}
+                                    {song.trackSubtitle}
+                                    {')'}
+                                </Text>
+                            )}
+                        </Text>
+                        <div className={styles.artists}>
+                            <JoinedArtists
+                                artistName={item.artistName}
+                                artists={item.artists}
+                                linkProps={{ fw: 400, isMuted: true }}
+                                rootTextProps={{
+                                    className: styles.artists,
+                                    fw: 400,
+                                    isMuted: true,
+                                    size: 'sm',
+                                }}
+                            />
+                        </div>
                     </div>
-                </div>
+                </Music032TitleTieup>
             </TableColumnContainer>
         );
     }

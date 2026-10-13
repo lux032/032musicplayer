@@ -12,6 +12,7 @@ import {
     TableColumnContainer,
 } from '/@/renderer/components/item-list/item-table-list/item-table-list-column';
 import { useIsActiveRow } from '/@/renderer/components/item-list/item-table-list/item-table-list-context';
+import { Music032TitleTieup } from '/@/renderer/features/albums/music032/music032-track-tieup';
 import { ExplicitIndicator } from '/@/shared/components/explicit-indicator/explicit-indicator';
 import { Text } from '/@/shared/components/text/text';
 import { LibraryItem, QueueSong } from '/@/shared/types/domain-types';
@@ -104,33 +105,35 @@ function QueueSongTitleColumn(props: ItemTableListInnerColumn) {
 
         return (
             <TableColumnContainer {...props}>
-                <Text
-                    className={clsx({
-                        [styles.active]: isActive,
-                        [styles.compact]: props.size === 'compact',
-                        [styles.large]: props.size === 'large',
-                        [styles.nameContainer]: true,
-                    })}
-                    isNoSelect
-                    {...titleLinkProps}
-                >
-                    <ExplicitIndicator explicitStatus={song?.explicitStatus} />
-                    {row}
-                    {song?.trackSubtitle && props.itemType !== LibraryItem.QUEUE_SONG && (
-                        <Text
-                            className={clsx({
-                                [styles.active]: isActive,
-                            })}
-                            component="span"
-                            isMuted
-                            size="sm"
-                        >
-                            {' ('}
-                            {song.trackSubtitle}
-                            {')'}
-                        </Text>
-                    )}
-                </Text>
+                <Music032TitleTieup songId={song?.id} withCredits>
+                    <Text
+                        className={clsx({
+                            [styles.active]: isActive,
+                            [styles.compact]: props.size === 'compact',
+                            [styles.large]: props.size === 'large',
+                            [styles.nameContainer]: true,
+                        })}
+                        isNoSelect
+                        {...titleLinkProps}
+                    >
+                        <ExplicitIndicator explicitStatus={song?.explicitStatus} />
+                        {row}
+                        {song?.trackSubtitle && props.itemType !== LibraryItem.QUEUE_SONG && (
+                            <Text
+                                className={clsx({
+                                    [styles.active]: isActive,
+                                })}
+                                component="span"
+                                isMuted
+                                size="sm"
+                            >
+                                {' ('}
+                                {song.trackSubtitle}
+                                {')'}
+                            </Text>
+                        )}
+                    </Text>
+                </Music032TitleTieup>
             </TableColumnContainer>
         );
     }

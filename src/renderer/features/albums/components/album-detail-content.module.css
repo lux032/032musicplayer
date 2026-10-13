@@ -123,3 +123,23 @@
         max-height: calc(100vh - 90px - var(--theme-spacing-lg) - 4rem);
     }
 }
+
+/* Disc group header: one line, never wraps to the pinned column width. */
+.disc-label {
+    display: inline-flex;
+    gap: var(--theme-spacing-sm);
+    align-items: baseline;
+    font-size: 0.875rem;
+    color: var(--theme-colors-foreground);
+    white-space: nowrap;
+}
+
+.disc-label strong {
+    font-weight: 700;
+}
+
+.disc-summary {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--theme-colors-foreground-muted);
+}

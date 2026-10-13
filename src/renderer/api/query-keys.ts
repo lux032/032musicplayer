@@ -191,6 +191,12 @@ export const queryKeys: Record<
 
             return [serverId, 'albums', 'list'] as const;
         },
+        // Raw 032 album payload and its linked works; under 'detail' so album
+        // detail invalidations refresh them too.
+        music032Detail: (serverId: string, albumId: string) =>
+            [serverId, 'albums', 'detail', 'music032', albumId] as const,
+        music032Works: (serverId: string, albumId: string) =>
+            [serverId, 'albums', 'detail', 'music032', albumId, 'works'] as const,
         related: (serverId: string, id: string, query?: AlbumDetailQuery) => {
             if (query) {
                 return [serverId, 'albums', id, 'related', query] as const;

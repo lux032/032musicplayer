@@ -513,7 +513,13 @@
             "topSongsPersonal": "Personal",
             "favoriteSongsFrom": "Favorite songs from {{title}}",
             "viewAll": "View all",
-            "viewAllTracks": "View all $t(entity.track, {\"count\": 2})"
+            "viewAllTracks": "View all $t(entity.track, {\"count\": 2})",
+            "music032SinglesEps": "Singles & EPs",
+            "music032CompilationsLive": "Compilations & live",
+            "music032OtherReleases": "Other releases",
+            "music032Collaborations": "Collaborations",
+            "music032Appearances": "Appears on",
+            "music032Credits": "Credits"
         },
         "albumArtistList": {
             "title": "$t(entity.albumArtist, {\"count\": 2})"
@@ -521,7 +527,35 @@
         "albumDetail": {
             "moreFromArtist": "More from this $t(entity.artist, {\"count\": 1})",
             "moreFromGeneric": "More from {{item}}",
-            "released": "Released"
+            "released": "Released",
+            "music032": {
+                "worksTitle": "Linked works",
+                "wholeAlbum": "Whole album",
+                "releaseInfo": "Release info",
+                "type": "Type",
+                "performer": "Performed by",
+                "releaseDate": "Release date",
+                "originalRelease": "Original release",
+                "label": "Label",
+                "catalogNumber": "Catalog no.",
+                "country": "Country/region",
+                "genres": "Genres",
+                "participants": "Participants",
+                "roleVocals": "Vocals",
+                "roleComposer": "Composer",
+                "roleLyricist": "Lyricist",
+                "roleArranger": "Arranger",
+                "roleProducer": "Producer",
+                "participantTracks_one": "{{count}} track",
+                "participantTracks_other": "{{count}} tracks",
+                "showAllPeople": "Show all {{count}}",
+                "mediaInfo": "Media info",
+                "format": "Format",
+                "size": "Size",
+                "andMore": "{{titles}} and more",
+                "tieupTitle": "Linked work: {{title}}",
+                "viewWork": "View work →"
+            }
         },
         "albumList": {
             "artistAlbums": "Albums by {{artist}}",

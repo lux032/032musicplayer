@@ -154,6 +154,56 @@ export const releaseTypeToEnumMap: Record<string, ArtistReleaseTypeItem> = {
     spokenword: ArtistReleaseTypeItem.RELEASE_TYPE_SPOKENWORD,
 };
 
+// Mirrors groupArtistDiscography in 032music-server (internal/http/identity.go):
+// ownership first, then release kind for the artist's own releases.
+const MUSIC032_GROUPS = [
+    { key: 'album', label: 'releaseType.primary.album' },
+    { key: 'single-ep', label: 'page.albumArtistDetail.music032SinglesEps' },
+    { key: 'compilation-live', label: 'page.albumArtistDetail.music032CompilationsLive' },
+    { key: 'other', label: 'page.albumArtistDetail.music032OtherReleases' },
+    { key: 'collaboration', label: 'page.albumArtistDetail.music032Collaborations' },
+    { key: 'appearance', label: 'page.albumArtistDetail.music032Appearances' },
+    { key: 'credit', label: 'page.albumArtistDetail.music032Credits' },
+] as const;
+
+const music032GroupKey = (album: Album): (typeof MUSIC032_GROUPS)[number]['key'] => {
+    if (album._m032Relation && album._m032Relation !== 'personal') return album._m032Relation;
+    switch ((album.releaseType || '').trim().toLowerCase()) {
+        case 'bootleg':
+        case 'other':
+        case 'soundtrack':
+            return 'other';
+        case 'compilation':
+        case 'live':
+            return 'compilation-live';
+        case 'ep':
+        case 'single':
+            return 'single-ep';
+        default:
+            return 'album';
+    }
+};
+
+const getMusic032AlbumsGrouped = (albums: Album[], t: (key: string) => string) => {
+    const byKey = new Map<string, Album[]>();
+    for (const album of albums) {
+        const key = music032GroupKey(album);
+        byKey.set(key, [...(byKey.get(key) ?? []), album]);
+    }
+    const releaseTypeEntries = MUSIC032_GROUPS.filter(({ key }) => byKey.has(key)).map(
+        ({ key, label }) => ({
+            albums: byKey.get(key)!,
+            displayName: t(label) as React.ReactNode | string,
+            releaseType: key as string,
+        }),
+    );
+    const flatSortedAlbums = releaseTypeEntries.flatMap((entry) => entry.albums);
+    return { flatSortedAlbums, releaseTypeEntries };
+};
+
+export const isMusic032Discography = (albums: Album[]) =>
+    albums.some((album) => album._m032Relation !== undefined);
+
 export const getArtistAlbumsGrouped = (
     albums: Album[],
     routeId: string,
@@ -161,6 +211,10 @@ export const getArtistAlbumsGrouped = (
     artistReleaseTypeItems: { disabled: boolean; id: string }[],
     t: (key: string, options?: any) => string,
 ) => {
+    if (isMusic032Discography(albums)) {
+        return getMusic032AlbumsGrouped(albums, t);
+    }
+
     const albumsByReleaseType = groupAlbumsByReleaseType(albums, routeId, groupingType);
 
     const enabledReleaseTypeEnums = new Set(

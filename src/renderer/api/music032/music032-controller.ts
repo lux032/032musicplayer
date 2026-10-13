@@ -271,6 +271,52 @@ const favoriteSongs = async (
         : items;
 };
 
+type AlbumFilterQuery = {
+    artistIds?: string[];
+    compilation?: boolean;
+    favorite?: boolean;
+    genreIds?: string[];
+    maxYear?: number;
+    minYear?: number;
+    searchTerm?: string;
+};
+
+/** An album list scoped to exactly one artist and nothing else: that artist's discography. */
+const discographyArtistId = (query: AlbumFilterQuery) =>
+    query.artistIds?.length === 1 &&
+    !query.favorite &&
+    !query.searchTerm &&
+    !query.genreIds?.length &&
+    !query.minYear &&
+    !query.maxYear &&
+    query.compilation === undefined
+        ? query.artistIds[0]
+        : undefined;
+
+// /albums?artist= matches any track role, so it cannot tell personal releases
+// from guest spots. /artists/{id} carries the same releases (with relation) the
+// 032 web artist page groups; albums only reached through composer/lyricist
+// credits are kept as relation=credit so they stay visible.
+const artistDiscography = async (
+    client: M032ApiClient,
+    ctx: M032Context,
+    artistId: string,
+): Promise<Album[]> => {
+    const [detail, matching] = await Promise.all([
+        client.get<M032ArtistDetail>(`/artists/${artistId}`),
+        fetchAll<M032Album>(client, '/albums', { artist: artistId }),
+    ]);
+    const releases: Album[] = detail.releases.map((release) => ({
+        ...m032Normalize.album(ctx, release),
+        _m032Relation: release.relation as Album['_m032Relation'],
+    }));
+    const seen = new Set(releases.map((album) => album.id));
+    const credits: Album[] = matching
+        .filter((album) => !seen.has(String(album.id)))
+        .map((album) => ({ ...m032Normalize.album(ctx, album), _m032Relation: 'credit' }));
+    return [...releases, ...credits];
+};
+
 const getPlaylistDetail = (client: M032ApiClient, id: string) =>
     client.get<M032PlaylistDetail>(`/playlists/${id}`);
 
@@ -532,6 +578,18 @@ export const Music032Controller: InternalControllerEndpoint = {
                 totalRecordCount: all.length,
             };
         }
+        const artistId = discographyArtistId(query);
+        if (artistId) {
+            const all = await artistDiscography(m032ApiClient(apiClientProps), ctx, artistId);
+            const sorted = query.sortBy
+                ? sortAlbumList(all, query.sortBy, query.sortOrder ?? SortOrder.ASC)
+                : all;
+            return {
+                items: sliceFor(sorted, query.startIndex, query.limit),
+                startIndex: query.startIndex,
+                totalRecordCount: sorted.length,
+            };
+        }
         const { items, total } = await fetchPage<M032Album>(
             m032ApiClient(apiClientProps),
             '/albums',
@@ -547,15 +605,23 @@ export const Music032Controller: InternalControllerEndpoint = {
     },
 
     getAlbumListCount: async ({ apiClientProps, query }) =>
-        query.favorite
+        discographyArtistId(query)
             ? (
-                  await favoriteAlbums(
+                  await artistDiscography(
                       m032ApiClient(apiClientProps),
                       m032Context(apiClientProps.server),
-                      query,
+                      discographyArtistId(query)!,
                   )
               ).length
-            : countOf(m032ApiClient(apiClientProps), '/albums', albumQuery(query)),
+            : query.favorite
+              ? (
+                    await favoriteAlbums(
+                        m032ApiClient(apiClientProps),
+                        m032Context(apiClientProps.server),
+                        query,
+                    )
+                ).length
+              : countOf(m032ApiClient(apiClientProps), '/albums', albumQuery(query)),
 
     getAlbumRadio: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);

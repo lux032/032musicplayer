@@ -167,6 +167,8 @@ const normalizeAlbum = (ctx: M032Context, item: M032Album, tracks?: M032Track[])
     const songs = tracks?.map((track) => normalizeSong(ctx, track, albumArtists));
     const duration = tracks ? tracks.reduce((sum, t) => sum + (t.durationMillis || 0), 0) : null;
     const releaseYear = item.year > 0 ? item.year : parseYear(item.releaseDate);
+    // releaseKind already folds in manual edits and inference; empty means unknown.
+    const releaseKind = item.releaseKind || item.albumType;
 
     return {
         _itemType: LibraryItem.ALBUM,
@@ -201,8 +203,8 @@ const normalizeAlbum = (ctx: M032Context, item: M032Album, tracks?: M032Track[])
         ratedAt: null,
         recordLabels: item.label ? [item.label] : [],
         releaseDate: nullIfEmpty(item.releaseDate) ?? (releaseYear ? String(releaseYear) : null),
-        releaseType: nullIfEmpty(item.releaseKind),
-        releaseTypes: item.releaseKind ? [item.releaseKind] : [],
+        releaseType: nullIfEmpty(releaseKind),
+        releaseTypes: releaseKind ? [releaseKind] : [],
         releaseYear,
         size: item.totalBytes || null,
         songCount: item.trackCount ?? songs?.length ?? null,

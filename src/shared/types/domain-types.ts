@@ -193,6 +193,8 @@ export enum TagListSort {
 
 export type Album = {
     _itemType: LibraryItem.ALBUM;
+    /** 032 only: how the album relates to the artist whose discography it came from. */
+    _m032Relation?: 'appearance' | 'collaboration' | 'credit' | 'personal';
     _serverId: string;
     _serverType: ServerType;
     albumArtistName: string;

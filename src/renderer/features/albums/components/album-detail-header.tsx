@@ -8,6 +8,7 @@ import styles from './album-detail-header.module.css';
 import { queryKeys } from '/@/renderer/api/query-keys';
 import { albumQueries } from '/@/renderer/features/albums/api/album-api';
 import { JoinedArtists } from '/@/renderer/features/albums/components/joined-artists';
+import { Music032AlbumWorkCapsules } from '/@/renderer/features/albums/music032/music032-album-inspector';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
 import {
@@ -18,7 +19,12 @@ import { useSetFavorite } from '/@/renderer/features/shared/hooks/use-set-favori
 import { useSetRating } from '/@/renderer/features/shared/hooks/use-set-rating';
 import { songsQueries } from '/@/renderer/features/songs/api/songs-api';
 import { AppRoute } from '/@/renderer/router/routes';
-import { useCurrentServer, useShowFavorites, useShowRatings } from '/@/renderer/store';
+import {
+    useCurrentServer,
+    useCurrentServerWithCredential,
+    useShowFavorites,
+    useShowRatings,
+} from '/@/renderer/store';
 import { useArtistRadioCount, usePlayButtonBehavior } from '/@/renderer/store/settings.store';
 import { formatDurationString, formatPartialIsoDateUTC, formatSizeString } from '/@/renderer/utils';
 import { normalizeReleaseTypes } from '/@/renderer/utils/normalize-release-types';
@@ -44,6 +50,10 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
     );
 
     const showRating = showRatings && hasFeature(server, ServerFeature.STAR_RATING);
+
+    const serverWithCredential = useCurrentServerWithCredential();
+    const music032Server =
+        serverWithCredential?.type === ServerType.MUSIC032 ? serverWithCredential : null;
 
     const { addToQueueByData, addToQueueByFetch } = usePlayer();
     const playButtonBehavior = usePlayButtonBehavior();
@@ -279,6 +289,9 @@ export const AlbumDetailHeader = forwardRef<HTMLDivElement>((_props, ref) => {
                             artists={detailQuery?.data?.albumArtists || []}
                         />
                     </Group>
+                    {music032Server && (
+                        <Music032AlbumWorkCapsules albumId={albumId} server={music032Server} />
+                    )}
                     <LibraryHeaderMenu
                         favorite={detailQuery?.data?.userFavorite}
                         onAlbumRadio={handleAlbumRadio}

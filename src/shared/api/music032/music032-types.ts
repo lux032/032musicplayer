@@ -26,6 +26,8 @@ export type M032Album = {
     review: string;
     title: string;
     totalBytes: number;
+    /** Human-readable totalBytes, e.g. "1.2 GB". */
+    totalSize?: string;
     trackCount: number;
     updatedAt: string;
     version: string;
@@ -52,6 +54,17 @@ export type M032AlbumWork = {
     trackRoles?: string[];
     workId: number;
     year?: number;
+};
+
+/** GET /api/v1/albums/{id}/works: one row per work (album-level link or first linked track). */
+export type M032AlbumWorkLink = {
+    id: number;
+    role: string;
+    source: string;
+    title: string;
+    trackId?: number;
+    trackTitle?: string;
+    type: string;
 };
 
 export type M032ApiErrorBody = {

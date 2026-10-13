@@ -945,7 +945,34 @@
         "albumDetail": {
             "moreFromArtist": "更多来自该 $t(entity.artist, {\"count\": 1}) 的作品",
             "moreFromGeneric": "更多 {{item}} 作品",
-            "released": "已发布"
+            "released": "已发布",
+            "music032": {
+                "worksTitle": "关联作品",
+                "wholeAlbum": "整张专辑关联",
+                "releaseInfo": "发行信息",
+                "type": "类型",
+                "performer": "演出者",
+                "releaseDate": "发行日期",
+                "originalRelease": "原始发行",
+                "label": "厂牌",
+                "catalogNumber": "目录号",
+                "country": "国家/地区",
+                "genres": "流派",
+                "participants": "参与者",
+                "roleVocals": "演唱",
+                "roleComposer": "作曲",
+                "roleLyricist": "作词",
+                "roleArranger": "编曲",
+                "roleProducer": "制作",
+                "participantTracks": "{{count}} 首",
+                "showAllPeople": "显示全部 {{count}} 位",
+                "mediaInfo": "媒体信息",
+                "format": "格式",
+                "size": "容量",
+                "andMore": "{{titles}} 等",
+                "tieupTitle": "关联作品：{{title}}",
+                "viewWork": "查看作品详情 →"
+            }
         },
         "setting": {
             "playbackTab": "播放",
@@ -1047,7 +1074,13 @@
             "favoriteSongs": "收藏的歌曲",
             "favoriteSongsFrom": "来自 {{title}} 收藏的歌曲",
             "topSongsCommunity": "社区",
-            "topSongsPersonal": "个人"
+            "topSongsPersonal": "个人",
+            "music032SinglesEps": "单曲与 EP",
+            "music032CompilationsLive": "合辑与现场",
+            "music032OtherReleases": "其他发行",
+            "music032Collaborations": "合作发行",
+            "music032Appearances": "参与作品",
+            "music032Credits": "幕后参与"
         },
         "itemDetail": {
             "copyPath": "将路径复制到剪贴板",
