@@ -26,8 +26,10 @@ import { Platform } from '/@/shared/types/types';
 const Music032HomeSkeleton = () => (
     <>
         <Skeleton borderRadius="20px" height={320} />
-        <Skeleton borderRadius="14px" height={240} />
-        <Skeleton borderRadius="14px" height={280} />
+        <div className={styles.duo}>
+            <Skeleton borderRadius="14px" height={280} />
+            <Skeleton borderRadius="14px" height={280} />
+        </div>
         <Skeleton borderRadius="14px" height={180} />
         <Skeleton borderRadius="14px" height={240} />
     </>
@@ -92,10 +94,12 @@ export const Music032HomeRoute = ({ fallback }: { fallback: ReactNode }) => {
                         ) : (
                             <>
                                 {data.spotlight && <HomeSpotlight spotlight={data.spotlight} />}
-                                <HomeResume records={data.resume} />
-                                {data.recentAlbums.length > 0 && (
-                                    <HomeRecentAlbums albums={data.recentAlbums} />
-                                )}
+                                <div className={styles.duo}>
+                                    <HomeResume records={data.resume} />
+                                    {data.recentAlbums.length > 0 && (
+                                        <HomeRecentAlbums albums={data.recentAlbums} />
+                                    )}
+                                </div>
                                 {data.works.count > 0 && <HomeWorksRotation initial={data.works} />}
                                 {data.songs.count > 0 && <HomeSongsRotation initial={data.songs} />}
                                 {data.chronicle && <HomeChronicle chronicle={data.chronicle} />}
