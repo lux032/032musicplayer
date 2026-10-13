@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { expandMusic032WorksToSongs } from '/@/renderer/features/home/music032/lib/play-music032';
+import {
+    expandMusic032SeriesToSongs,
+    expandMusic032WorksToSongs,
+} from '/@/renderer/features/home/music032/lib/play-music032';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { toast } from '/@/shared/components/toast/toast';
@@ -80,5 +83,22 @@ export const useMusic032HomePlay = () => {
         [player, server, t],
     );
 
-    return { appendAlbum, appendWorks, playAlbum, playPlaylist, playSongs, playWorks };
+    const playSeries = useCallback(
+        async (seriesId: number, play: Play = Play.NOW) => {
+            if (!server) return;
+            try {
+                const songs = await expandMusic032SeriesToSongs(server, seriesId);
+                if (!songs.length) {
+                    toast.warn({ message: t('page.home.music032.noPlayableTracks') });
+                    return;
+                }
+                player.addToQueueByData(songs, play);
+            } catch {
+                toast.error({ message: t('page.home.music032.loadFailed') });
+            }
+        },
+        [player, server, t],
+    );
+
+    return { appendAlbum, appendWorks, playAlbum, playPlaylist, playSeries, playSongs, playWorks };
 };

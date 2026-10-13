@@ -81,6 +81,10 @@ const GenreDetailRoute = lazy(
 const FolderListRoute = lazy(() => import('/@/renderer/features/folders/routes/folder-list-route'));
 
 const RadioListRoute = lazy(() => import('/@/renderer/features/radio/routes/radio-list-route'));
+const SeriesDetailRoute = lazy(
+    () => import('/@/renderer/features/series/routes/series-detail-route'),
+);
+const SeriesListRoute = lazy(() => import('/@/renderer/features/series/routes/series-list-route'));
 const WorkDetailRoute = lazy(() => import('/@/renderer/features/works/routes/work-detail-route'));
 const WorkListRoute = lazy(() => import('/@/renderer/features/works/routes/work-list-route'));
 
@@ -311,6 +315,22 @@ export const AppRouter = () => {
                                                 </Music032RouteGuard>
                                             }
                                             path={AppRoute.LIBRARY_WORKS_DETAIL}
+                                        />
+                                        <Route
+                                            element={
+                                                <Music032RouteGuard>
+                                                    <SeriesListRoute />
+                                                </Music032RouteGuard>
+                                            }
+                                            path={AppRoute.LIBRARY_SERIES}
+                                        />
+                                        <Route
+                                            element={
+                                                <Music032RouteGuard>
+                                                    <SeriesDetailRoute />
+                                                </Music032RouteGuard>
+                                            }
+                                            path={AppRoute.LIBRARY_SERIES_DETAIL}
                                         />
                                         <Route
                                             element={<FolderListRoute />}

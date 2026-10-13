@@ -1,6 +1,10 @@
 import { m032Context } from '/@/renderer/api/music032/music032-api';
 import { fetchMusic032WorkTracks } from '/@/renderer/features/home/music032/api/music032-home-api';
-import { recordWorkTracks } from '/@/renderer/features/home/music032/lib/playing-source-map';
+import {
+    recordSeriesTracks,
+    recordWorkTracks,
+} from '/@/renderer/features/home/music032/lib/playing-source-map';
+import { fetchMusic032SeriesTracks } from '/@/renderer/features/series/api/series-api';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { ServerListItemWithCredential, Song } from '/@/shared/types/domain-types';
 
@@ -31,4 +35,19 @@ export const expandMusic032WorksToSongs = async (
     }
 
     return songs;
+};
+
+/** 系列全部曲目展开成 Song 列表（/series/{id}/tracks 已按成员顺序去重）。 */
+export const expandMusic032SeriesToSongs = async (
+    server: ServerListItemWithCredential,
+    seriesId: number,
+): Promise<Song[]> => {
+    const ctx = m032Context(server);
+    const res = await fetchMusic032SeriesTracks(server, seriesId);
+    // 系列级播放徽标：/series/{id}/tracks 不带成员归属，只记到系列本身。
+    recordSeriesTracks(
+        seriesId,
+        res.items.map((track) => track.id),
+    );
+    return res.items.map((track) => m032Normalize.song(ctx, track));
 };

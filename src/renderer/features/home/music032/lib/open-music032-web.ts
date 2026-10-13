@@ -2,7 +2,9 @@ import { useCallback } from 'react';
 import { generatePath, useNavigate } from 'react-router';
 
 import { m032Context } from '/@/renderer/api/music032/music032-api';
+import { useMusic032SeriesSupported } from '/@/renderer/features/shared/hooks/use-music032-capabilities';
 import { AppRoute } from '/@/renderer/router/routes';
+import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { ServerListItemWithCredential } from '/@/shared/types/domain-types';
 
 /**
@@ -26,6 +28,21 @@ export const useOpenMusic032Work = () => {
     );
 };
 
-/** 打开系列：系列页落地前暂时仍打开网页（后续提交替换为客户端路由）。 */
-export const openMusic032Series = (server: null | ServerListItemWithCredential, seriesId: number) =>
-    openMusic032WebPath(server, `/admin/series/${seriesId}`);
+/** 打开系列：有系列接口时进客户端系列页，否则回退为打开网页。 */
+export const useOpenMusic032Series = () => {
+    const navigate = useNavigate();
+    const server = useCurrentServerWithCredential();
+    const seriesSupported = useMusic032SeriesSupported();
+    return useCallback(
+        (seriesId: number) => {
+            if (seriesSupported) {
+                navigate(
+                    generatePath(AppRoute.LIBRARY_SERIES_DETAIL, { seriesId: String(seriesId) }),
+                );
+            } else {
+                openMusic032WebPath(server, `/admin/series/${seriesId}`);
+            }
+        },
+        [navigate, seriesSupported, server],
+    );
+};
