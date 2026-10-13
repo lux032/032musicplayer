@@ -760,6 +760,8 @@
                 "renewNotice": "Today's picks have been refreshed",
                 "reroll": "Reroll",
                 "recentPlayed": "Recently played",
+                "recentPlayedEmpty": "No playback history yet",
+                "recentPlayedEmptyHint": "Songs you play will show up here.",
                 "resume": "Resume",
                 "resumeCount": "{{count}} unfinished",
                 "resumeEmpty": "No unfinished songs",

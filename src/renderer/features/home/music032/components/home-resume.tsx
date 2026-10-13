@@ -7,12 +7,8 @@ import { m032Context } from '/@/renderer/api/music032/music032-api';
 import { ItemImage } from '/@/renderer/components/item-image/item-image';
 import { getTitlePath } from '/@/renderer/components/item-list/helpers/get-title-path';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
-import {
-    HomeInlineEmpty,
-    HomeSection,
-} from '/@/renderer/features/home/music032/components/home-section';
+import { HomeSection } from '/@/renderer/features/home/music032/components/home-section';
 import { formatTrackDuration } from '/@/renderer/features/home/music032/lib/format';
-import { openMusic032WebPath } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
 import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
@@ -24,7 +20,10 @@ import { M032PlaybackRecord } from '/@/shared/api/music032/music032-types';
 import { Icon } from '/@/shared/components/icon/icon';
 import { LibraryItem, Song } from '/@/shared/types/domain-types';
 
-/** 接着听：未听完的曲目，从断点继续。 */
+/** 接着听只列最近的几首，放在最近播放下方。 */
+export const RESUME_VISIBLE_COUNT = 2;
+
+/** 接着听：未听完的曲目，从断点继续；没有时整块不显示。 */
 export const HomeResume = ({ records }: { records: M032PlaybackRecord[] }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
@@ -32,7 +31,7 @@ export const HomeResume = ({ records }: { records: M032PlaybackRecord[] }) => {
 
     const items = useMemo(() => {
         const ctx = m032Context(server);
-        return records.map((record) => ({
+        return records.slice(0, RESUME_VISIBLE_COUNT).map((record) => ({
             percent:
                 record.durationMillis > 0
                     ? Math.min(
@@ -48,43 +47,21 @@ export const HomeResume = ({ records }: { records: M032PlaybackRecord[] }) => {
         }));
     }, [records, server]);
 
+    if (items.length === 0) return null;
+
     return (
-        <HomeSection
-            count={
-                items.length > 0
-                    ? t('page.home.music032.resumeCount', { count: items.length })
-                    : undefined
-            }
-            title={t('page.home.music032.resume')}
-            tools={
-                <button
-                    className={styles.sectionLink}
-                    onClick={() => openMusic032WebPath(server ?? null, '/admin/playback')}
-                    type="button"
-                >
-                    {t('page.home.music032.playbackHistory')}
-                    <Icon icon="arrowRightS" />
-                </button>
-            }
-        >
-            {items.length === 0 ? (
-                <HomeInlineEmpty
-                    hint={t('page.home.music032.resumeEmptyHint')}
-                    title={t('page.home.music032.resumeEmpty')}
-                />
-            ) : (
-                <div className={styles.rows}>
-                    {items.map(({ percent, record, song }) => (
-                        <ResumeRow
-                            key={record.trackId}
-                            onPlay={() => playSongs([song])}
-                            percent={percent}
-                            record={record}
-                            song={song}
-                        />
-                    ))}
-                </div>
-            )}
+        <HomeSection title={t('page.home.music032.resume')}>
+            <div className={styles.rows}>
+                {items.map(({ percent, record, song }) => (
+                    <ResumeRow
+                        key={record.trackId}
+                        onPlay={() => playSongs([song])}
+                        percent={percent}
+                        record={record}
+                        song={song}
+                    />
+                ))}
+            </div>
         </HomeSection>
     );
 };

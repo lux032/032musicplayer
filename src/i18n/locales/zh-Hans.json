@@ -908,6 +908,8 @@
                 "renewNotice": "今日推荐已更新",
                 "reroll": "换一张",
                 "recentPlayed": "最近播放",
+                "recentPlayedEmpty": "还没有播放记录",
+                "recentPlayedEmptyHint": "播放过的歌曲会出现在这里。",
                 "resume": "接着听",
                 "resumeCount": "{{count}} 首未听完",
                 "resumeEmpty": "还没有未听完的歌曲",

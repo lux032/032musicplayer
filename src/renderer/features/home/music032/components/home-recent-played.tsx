@@ -9,19 +9,26 @@ import { ItemImage } from '/@/renderer/components/item-image/item-image';
 import { getTitlePath } from '/@/renderer/components/item-list/helpers/get-title-path';
 import { ContextMenuController } from '/@/renderer/features/context-menu/context-menu-controller';
 import { music032HomeQueries } from '/@/renderer/features/home/music032/api/music032-home-api';
+import {
+    HomeInlineEmpty,
+    HomeSection,
+} from '/@/renderer/features/home/music032/components/home-section';
+import { openMusic032WebPath } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
 import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
 import { useSongPlayState } from '/@/renderer/features/shared/components/playing-indicator/use-song-play-state';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
-import { formatDateRelative } from '/@/renderer/utils/format';
+import { formatHrDateTime } from '/@/renderer/utils/format';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { Icon } from '/@/shared/components/icon/icon';
 import { LibraryItem, Song } from '/@/shared/types/domain-types';
 
+const RECENT_PLAYED_COUNT = 5;
+
 /**
- * 最近播放：填在接着听下方，只占用左栏剩余高度（由右侧最近添加决定），
- * 放不下的行被 CSS 折到隐藏列里；剩余空间不够一行时整块隐藏。
+ * 最近播放：最近播放过的 5 首（不含下方接着听已列出的曲目），不显示进度。
+ * 数据来自 /tracks?sort=recentlyPlayed，从未播放的曲目排在末尾，这里过滤掉。
  */
 export const HomeRecentPlayed = ({ excludeTrackIds }: { excludeTrackIds: number[] }) => {
     const { t } = useTranslation();
@@ -40,28 +47,41 @@ export const HomeRecentPlayed = ({ excludeTrackIds }: { excludeTrackIds: number[
         const exclude = new Set(excludeTrackIds);
         return (query.data?.items ?? [])
             .filter((track) => track.lastPlayedAt && !exclude.has(track.id))
+            .slice(0, RECENT_PLAYED_COUNT)
             .map((track) => m032Normalize.song(ctx, track));
     }, [excludeTrackIds, query.data, server]);
 
     return (
-        <div aria-hidden={songs.length === 0} className={styles.recentPlayed}>
-            {songs.length > 0 && (
-                <div className={styles.recentPlayedInner}>
-                    <h3 className={styles.recentPlayedTitle}>
-                        {t('page.home.music032.recentPlayed')}
-                    </h3>
-                    <div className={styles.recentPlayedRows}>
-                        {songs.map((song) => (
-                            <RecentPlayedRow
-                                key={song.id}
-                                onPlay={() => playSongs([song])}
-                                song={song}
-                            />
-                        ))}
-                    </div>
+        <HomeSection
+            title={t('page.home.music032.recentPlayed')}
+            tools={
+                <button
+                    className={styles.sectionLink}
+                    onClick={() => openMusic032WebPath(server ?? null, '/admin/playback')}
+                    type="button"
+                >
+                    {t('page.home.music032.playbackHistory')}
+                    <Icon icon="arrowRightS" />
+                </button>
+            }
+        >
+            {query.isPending ? null : songs.length === 0 ? (
+                <HomeInlineEmpty
+                    hint={t('page.home.music032.recentPlayedEmptyHint')}
+                    title={t('page.home.music032.recentPlayedEmpty')}
+                />
+            ) : (
+                <div className={styles.rows}>
+                    {songs.map((song) => (
+                        <RecentPlayedRow
+                            key={song.id}
+                            onPlay={() => playSongs([song])}
+                            song={song}
+                        />
+                    ))}
                 </div>
             )}
-        </div>
+        </HomeSection>
     );
 };
 
@@ -71,7 +91,7 @@ const RecentPlayedRow = ({ onPlay, song }: { onPlay: () => void; song: Song }) =
 
     return (
         <article
-            className={clsx(styles.resumeRow, styles.playedRow, playState && styles.isCurrent)}
+            className={clsx(styles.resumeRow, playState && styles.isCurrent)}
             onContextMenu={(e) => {
                 e.preventDefault();
                 ContextMenuController.call({
@@ -80,12 +100,7 @@ const RecentPlayedRow = ({ onPlay, song }: { onPlay: () => void; song: Song }) =
                 });
             }}
         >
-            <button
-                aria-label={song.name}
-                className={clsx(styles.rowArt, styles.playedArt)}
-                onClick={onPlay}
-                type="button"
-            >
+            <button aria-label={song.name} className={styles.rowArt} onClick={onPlay} type="button">
                 {song.imageId ? (
                     <ItemImage
                         containerClassName={styles.imgBox}
@@ -116,7 +131,7 @@ const RecentPlayedRow = ({ onPlay, song }: { onPlay: () => void; song: Song }) =
                     )}
                 </span>
             </div>
-            <span className={styles.rowWhen}>{formatDateRelative(song.lastPlayedAt)}</span>
+            <span className={styles.rowWhen}>{formatHrDateTime(song.lastPlayedAt)}</span>
         </article>
     );
 };

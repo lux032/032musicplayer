@@ -670,77 +670,12 @@
     gap: clamp(28px, 3.4vw, 52px);
 }
 
-/* left column: resume + recently played filler */
+/* left column: recently played (5) above resume (2) */
 .duo-main {
     display: flex;
     flex-direction: column;
     gap: 24px;
     min-width: 0;
-}
-
-/*
- * Recently played only takes the height the duo row already has (set by the
- * recent albums grid): size containment keeps it from growing the row, and
- * rows that do not fit wrap into a hidden second column.
- */
-.recent-played {
-    flex: 1 1 0;
-    min-height: 0;
-    container-type: size;
-}
-
-.recent-played-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    height: 100%;
-}
-
-.recent-played-title {
-    margin: 0;
-    font-size: 0.85rem;
-    font-weight: 650;
-    color: var(--theme-colors-foreground-muted);
-}
-
-.recent-played-rows {
-    display: flex;
-    flex: 1;
-    flex-flow: column wrap;
-    gap: 2px 40px;
-    align-content: flex-start;
-    min-height: 0;
-    overflow: hidden;
-}
-
-.recent-played-rows > * {
-    width: 100%;
-}
-
-.resume-row.played-row {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    min-height: 56px;
-}
-
-.row-art.played-art {
-    width: 40px;
-    height: 40px;
-}
-
-/*
- * .recent-played is itself a container, so unnamed width queries (e.g. the
- * 760px .row-when rule) would measure it instead of the page; keep the time.
- * On narrow pages the duo stacks and this block collapses to zero height.
- */
-.recent-played .row-when {
-    display: block;
-}
-
-/* less than title + one row left: hide the whole block */
-@container (max-height: 90px) {
-    .recent-played-inner {
-        display: none;
-    }
 }
 
 /* ------------------------------------------------------------ card grids / shelves */

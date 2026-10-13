@@ -10,7 +10,10 @@ import { HomeFirstRun } from '/@/renderer/features/home/music032/components/home
 import { HomePlaylists } from '/@/renderer/features/home/music032/components/home-playlists';
 import { HomeRecentAlbums } from '/@/renderer/features/home/music032/components/home-recent-albums';
 import { HomeRecentPlayed } from '/@/renderer/features/home/music032/components/home-recent-played';
-import { HomeResume } from '/@/renderer/features/home/music032/components/home-resume';
+import {
+    HomeResume,
+    RESUME_VISIBLE_COUNT,
+} from '/@/renderer/features/home/music032/components/home-resume';
 import { HomeSectionError } from '/@/renderer/features/home/music032/components/home-section';
 import { HomeSongsRotation } from '/@/renderer/features/home/music032/components/home-songs-rotation';
 import { HomeSpotlight } from '/@/renderer/features/home/music032/components/home-spotlight';
@@ -97,10 +100,12 @@ export const Music032HomeRoute = ({ fallback }: { fallback: ReactNode }) => {
                                 {data.spotlight && <HomeSpotlight spotlight={data.spotlight} />}
                                 <div className={styles.duo}>
                                     <div className={styles.duoMain}>
-                                        <HomeResume records={data.resume} />
                                         <HomeRecentPlayed
-                                            excludeTrackIds={data.resume.map((r) => r.trackId)}
+                                            excludeTrackIds={data.resume
+                                                .slice(0, RESUME_VISIBLE_COUNT)
+                                                .map((r) => r.trackId)}
                                         />
+                                        <HomeResume records={data.resume} />
                                     </div>
                                     {data.recentAlbums.length > 0 && (
                                         <HomeRecentAlbums albums={data.recentAlbums} />

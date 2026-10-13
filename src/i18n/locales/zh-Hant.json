@@ -267,6 +267,8 @@
                 "renewNotice": "今日推薦已更新",
                 "reroll": "換一張",
                 "recentPlayed": "最近播放",
+                "recentPlayedEmpty": "還沒有播放記錄",
+                "recentPlayedEmptyHint": "播放過的歌曲會出現在這裡。",
                 "resume": "接著聽",
                 "resumeCount": "{{count}} 首未聽完",
                 "resumeEmpty": "還沒有未聽完的歌曲",
