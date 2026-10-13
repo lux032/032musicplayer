@@ -123,7 +123,9 @@
 
 ### `src/renderer/features/shared/components/list-filters.tsx`
 - `MUSIC032` 复用 Subsonic 的专辑、歌曲筛选器（收藏、艺人、流派、年份区间）。
-- **合并规则：** 保留 `MUSIC032` 条目。
+- `ListFilters` 外层的 `display: contents` 包裹 div 来自 plex 分支（修复冷缓存首次加载
+  时筛选侧栏 `removeChild` 崩溃，见 `PLEX_CHANGES.md`），不是本分支的改动。
+- **合并规则：** 保留 `MUSIC032` 条目；其余取 plex（包括该包裹 div）。
 
 ### `src/i18n/locales/en.json`、`zh-Hans.json`、`zh-Hant.json`
 - 新增 `error.music032*`（5 个）和 `form.addServer.input_music032*`（5 个）。
