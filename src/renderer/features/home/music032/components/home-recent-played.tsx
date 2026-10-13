@@ -13,11 +13,11 @@ import {
     HomeInlineEmpty,
     HomeSection,
 } from '/@/renderer/features/home/music032/components/home-section';
-import { openMusic032WebPath } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
 import { PlayingIndicator } from '/@/renderer/features/shared/components/playing-indicator/playing-indicator';
 import { useSongPlayState } from '/@/renderer/features/shared/components/playing-indicator/use-song-play-state';
+import { AppRoute } from '/@/renderer/router/routes';
 import { useCurrentServerWithCredential } from '/@/renderer/store';
 import { formatHrDateTime } from '/@/renderer/utils/format';
 import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
@@ -55,14 +55,10 @@ export const HomeRecentPlayed = ({ excludeTrackIds }: { excludeTrackIds: number[
         <HomeSection
             title={t('page.home.music032.recentPlayed')}
             tools={
-                <button
-                    className={styles.sectionLink}
-                    onClick={() => openMusic032WebPath(server ?? null, '/admin/playback')}
-                    type="button"
-                >
+                <Link className={styles.sectionLink} to={AppRoute.LIBRARY_PLAYBACK_HISTORY}>
                     {t('page.home.music032.playbackHistory')}
                     <Icon icon="arrowRightS" />
-                </button>
+                </Link>
             }
         >
             {query.isPending ? null : songs.length === 0 ? (

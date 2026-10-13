@@ -444,7 +444,8 @@
             "radio": "電台",
             "collections": "收藏集",
             "works": "作品",
-            "series": "系列"
+            "series": "系列",
+            "playbackHistory": "播放記錄"
         },
         "trackList": {
             "title": "$t(entity.track, {\"count\": 2})",
@@ -590,6 +591,31 @@
             "unsupported": "此伺服器暫不支援系列介面",
             "unsupportedHint": "升級 032 伺服器，或在網頁中管理系列。",
             "yearRange": "{{from}} - {{to}}"
+        },
+        "playbackHistory": {
+            "title": "播放記錄",
+            "count": "{{count}} 首有播放記錄的歌曲",
+            "empty": "還沒有播放記錄",
+            "emptyHint": "開始播放後，進度和播放次數會顯示在這裡。",
+            "playCount": "播放次數",
+            "position": "目前位置",
+            "lastPlayed": "最近播放",
+            "clear": "清空播放歷史",
+            "clearTitle": "確定清空全部播放記錄嗎？",
+            "clearDescription": "這會永久清除全部播放次數和斷點位置，不會刪除歌曲或收藏。此操作無法復原。",
+            "clearConfirm": "永久清空",
+            "cleared": "已清空播放歷史",
+            "clearFailed": "清空播放歷史失敗",
+            "state": {
+                "playing": "播放中",
+                "buffering": "緩衝中",
+                "paused": "已暫停",
+                "interrupted": "已中斷",
+                "completed": "播放完成",
+                "skipped": "已跳過",
+                "error": "播放錯誤",
+                "stopped": "已停止"
+            }
         }
     },
     "player": {

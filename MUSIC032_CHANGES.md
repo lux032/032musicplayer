@@ -29,7 +29,8 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 | `src/renderer/features/shared/components/playing-indicator/` | 正在播放指示：均衡器竖条组件（暂停冻结、prefers-reduced-motion 静态、主题色）、id+服务器 id 判定纯函数、hooks |
 | `src/renderer/features/shared/components/music032-route-guard.tsx` | 作品 / 系列路由守卫：非 MUSIC032 服务端访问时重定向主页 |
 | `src/renderer/features/shared/hooks/use-music032-capabilities.ts` | `/capabilities` 查询与 `useMusic032SeriesSupported`（系列能力位） |
-| `src/renderer/features/shared/hooks/use-music032-sidebar-items.ts` | 侧边栏注入项（作品 / 系列，仅 MUSIC032，不进持久化设置；系列接口缺失时系列入口打开网页） |
+| `src/renderer/features/playback-history/` | 客户端内播放记录页（`/library/playback-history`）：`GET /api/v1/playback/history` 无限滚动，行内进度、播放状态、次数、位置、最近播放时间；「清空播放历史」走 `DELETE /api/v1/playback/history`（确认弹窗，成功后失效主页查询） |
+| `src/renderer/features/shared/hooks/use-music032-sidebar-items.ts` | 侧边栏注入项（作品 / 系列 / 播放记录，仅 MUSIC032，不进持久化设置；系列接口缺失时系列入口打开网页） |
 | `src/renderer/features/radio/hooks/use-radio-supported.ts` | 电台能力判定：只有 MUSIC032 按 INTERNET_RADIO 能力位隐藏，其他类型行为不变 |
 | `src/renderer/features/radio/components/radio-route-guard.tsx` | `/radio` 直接访问在无电台能力时重定向主页 |
 | `scripts/music032/playback-reporter.test.mjs` | 上报状态机单元测试，`pnpm test:music032`（需 Node >= 22.18） |
@@ -66,10 +67,11 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
   供 032 主页使用；`batch` / `generation` / `type` / `year` 进 key。
 - 追加 `music032`（`capabilities`）、`works`（`list` / `detail` / `albums` / `tracks` / `root`）、
   `series`（同名）命名空间，供作品页、系列页和能力位查询使用。
+- 追加 `home.recentPlayed`（主页最近播放）和 `playbackHistory`（`list` / `root`，播放记录页）。
 
 ### `src/renderer/router/routes.ts`、`src/renderer/router/app-router.tsx`
-- `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL`；
-  四条路由挂在 `Music032RouteGuard` 下（非 MUSIC032 重定向主页）。
+- `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL` /
+  `LIBRARY_PLAYBACK_HISTORY`；这些路由挂在 `Music032RouteGuard` 下（非 MUSIC032 重定向主页）。
 - `/radio` 路由包一层 `RadioRouteGuard`（无 `INTERNET_RADIO` 能力位时重定向主页）。
 
 ### `src/shared/types/features-types.ts` 和各 controller 的 `getServerInfo`
@@ -95,7 +97,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
   `radioSupported` 来自 `useInternetRadioSupported()`（MUSIC032 未声明 `INTERNET_RADIO` 时隐藏电台）；
   memo 末尾在 `Genres` 后 splice 注入 `useMusic032SidebarItems()` 的作品 / 系列项
   （id 为 `M032Works` / `M032Series`，不进持久化设置），条目渲染透传 `onClick`。
-- `sidebar-icon.tsx`：`LIBRARY_WORKS` / `LIBRARY_SERIES` 两个 case（RiBookOpen / RiStack）。
+- `sidebar-icon.tsx`：`LIBRARY_WORKS` / `LIBRARY_SERIES` / `LIBRARY_PLAYBACK_HISTORY` 三个 case（RiBookOpen / RiStack / RiHistory）。
 - `collapsed-sidebar-item.tsx`：props 增加可选 `onClick`（原本就透传其余 props 到 Flex）。
 
 ### `src/renderer/features/settings/components/general/sidebar-reorder.tsx`
@@ -185,7 +187,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 
 - **032 主页**：作品和系列已有客户端内页面（`/library/works*`、`/library/series*`），主页、专辑页等
   入口统一走客户端路由；「在网页中打开」作为页面内的次要操作保留（编辑、管理用）。
-  网页主页的搜索框未移植（feishin 有全局搜索）；「接着听」的「播放记录」和页脚「待审核」同样跳网页。
+  网页主页的搜索框未移植（feishin 有全局搜索）；页脚「待审核」仍跳网页（播放记录已有客户端内页面）。
 - **作品卡片播放徽标**：作品 / 系列卡片的播放态来自会话级“作品→曲目”映射（播放展开时记录，
   上限 200 条）；从专辑页等其他入口开始播放时不亮（等 C11）。
 - **作品列表首字母索引**：`/works` 的 `index` 参数客户端暂未使用（网页有首字母索引栏）。

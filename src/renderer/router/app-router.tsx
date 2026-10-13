@@ -88,6 +88,10 @@ const SeriesListRoute = lazy(() => import('/@/renderer/features/series/routes/se
 const WorkDetailRoute = lazy(() => import('/@/renderer/features/works/routes/work-detail-route'));
 const WorkListRoute = lazy(() => import('/@/renderer/features/works/routes/work-list-route'));
 
+const PlaybackHistoryRoute = lazy(
+    () => import('/@/renderer/features/playback-history/routes/playback-history-route'),
+);
+
 const SearchRoute = lazy(() => import('/@/renderer/features/search/routes/search-route'));
 
 const FavoritesRoute = lazy(() => import('/@/renderer/features/favorites/routes/favorites-route'));
@@ -331,6 +335,14 @@ export const AppRouter = () => {
                                                 </Music032RouteGuard>
                                             }
                                             path={AppRoute.LIBRARY_SERIES_DETAIL}
+                                        />
+                                        <Route
+                                            element={
+                                                <Music032RouteGuard>
+                                                    <PlaybackHistoryRoute />
+                                                </Music032RouteGuard>
+                                            }
+                                            path={AppRoute.LIBRARY_PLAYBACK_HISTORY}
                                         />
                                         <Route
                                             element={<FolderListRoute />}

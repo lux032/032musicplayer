@@ -303,6 +303,10 @@ export const queryKeys: Record<
     musicFolders: {
         list: (serverId: string) => [serverId, 'musicFolders', 'list'] as const,
     },
+    playbackHistory: {
+        list: (serverId: string) => [serverId, 'playbackHistory', 'list'] as const,
+        root: (serverId: string) => [serverId, 'playbackHistory'] as const,
+    },
     player: {
         fetch: (meta?: any) => {
             if (meta) {

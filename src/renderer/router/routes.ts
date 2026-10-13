@@ -21,6 +21,7 @@ export enum AppRoute {
     LIBRARY_FOLDERS = '/library/folders',
     LIBRARY_GENRES = '/library/genres',
     LIBRARY_GENRES_DETAIL = '/library/genres/:genreId',
+    LIBRARY_PLAYBACK_HISTORY = '/library/playback-history',
     LIBRARY_SERIES = '/library/series',
     LIBRARY_SERIES_DETAIL = '/library/series/:seriesId',
     LIBRARY_SONGS = '/library/songs',

@@ -13,7 +13,7 @@ export type Music032SidebarItem = SidebarItemType & {
 };
 
 /**
- * MUSIC032 专属的侧边栏注入项（作品、系列），不进用户的 sidebarItems 持久化
+ * MUSIC032 专属的侧边栏注入项（作品、系列、播放记录），不进用户的 sidebarItems 持久化
  * 设置。后端没有系列接口时（能力位缺失），系列入口直接打开网页端。
  */
 export const useMusic032SidebarItems = (): Music032SidebarItem[] => {
@@ -52,6 +52,13 @@ export const useMusic032SidebarItems = (): Music032SidebarItem[] => {
                 route: AppRoute.LIBRARY_SERIES,
             });
         }
+
+        items.push({
+            disabled: false,
+            id: 'M032PlaybackHistory',
+            label: t('page.sidebar.playbackHistory'),
+            route: AppRoute.LIBRARY_PLAYBACK_HISTORY,
+        });
 
         return items;
     }, [server, seriesSupported, t]);

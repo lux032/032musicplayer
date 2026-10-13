@@ -777,7 +777,8 @@
             "radio": "广播电台",
             "collections": "合集",
             "works": "作品",
-            "series": "系列"
+            "series": "系列",
+            "playbackHistory": "播放记录"
         },
         "fullscreenPlayer": {
             "config": {
@@ -1208,6 +1209,31 @@
             "unsupported": "此服务端暂不支持系列接口",
             "unsupportedHint": "升级 032 服务端，或在网页中管理系列。",
             "yearRange": "{{from}} - {{to}}"
+        },
+        "playbackHistory": {
+            "title": "播放记录",
+            "count": "{{count}} 首有播放记录的歌曲",
+            "empty": "还没有播放记录",
+            "emptyHint": "开始播放后，进度和播放次数会显示在这里。",
+            "playCount": "播放次数",
+            "position": "当前位置",
+            "lastPlayed": "最近播放",
+            "clear": "清空播放历史",
+            "clearTitle": "确定清空全部播放记录吗？",
+            "clearDescription": "这会永久清除全部播放次数和断点位置，不会删除歌曲或收藏。此操作不可撤销。",
+            "clearConfirm": "永久清空",
+            "cleared": "已清空播放历史",
+            "clearFailed": "清空播放历史失败",
+            "state": {
+                "playing": "播放中",
+                "buffering": "缓冲中",
+                "paused": "已暂停",
+                "interrupted": "已中断",
+                "completed": "播放完成",
+                "skipped": "已跳过",
+                "error": "播放错误",
+                "stopped": "已停止"
+            }
         }
     },
     "form": {

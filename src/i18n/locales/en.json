@@ -878,7 +878,8 @@
             "shared": "Shared Playlists",
             "tracks": "Tracks",
             "works": "Works",
-            "series": "Series"
+            "series": "Series",
+            "playbackHistory": "Playback history"
         },
         "trackList": {
             "artistTracks": "Tracks by {{artist}}",
@@ -949,6 +950,31 @@
             "unsupported": "This server does not support the series API yet",
             "unsupportedHint": "Update the 032 server, or manage series in the browser.",
             "yearRange": "{{from}} - {{to}}"
+        },
+        "playbackHistory": {
+            "title": "Playback history",
+            "count": "{{count}} songs with playback history",
+            "empty": "No playback history yet",
+            "emptyHint": "Progress and play counts show up here once you start playing.",
+            "playCount": "Plays",
+            "position": "Position",
+            "lastPlayed": "Last played",
+            "clear": "Clear playback history",
+            "clearTitle": "Clear playback history?",
+            "clearDescription": "This permanently removes all play counts and resume positions. Songs and favorites are not deleted. This cannot be undone.",
+            "clearConfirm": "Clear permanently",
+            "cleared": "Playback history cleared",
+            "clearFailed": "Failed to clear playback history",
+            "state": {
+                "playing": "Playing",
+                "buffering": "Buffering",
+                "paused": "Paused",
+                "interrupted": "Interrupted",
+                "completed": "Completed",
+                "skipped": "Skipped",
+                "error": "Error",
+                "stopped": "Stopped"
+            }
         }
     },
     "player": {
