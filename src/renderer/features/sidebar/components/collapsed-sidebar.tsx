@@ -12,6 +12,10 @@ import Music032Logo from '/@/renderer/features/servers/assets/music032.png';
 import NavidromeLogo from '/@/renderer/features/servers/assets/navidrome.png';
 import OpenSubsonicLogo from '/@/renderer/features/servers/assets/opensubsonic.png';
 import PlexLogo from '/@/renderer/features/servers/assets/plex.png';
+import {
+    Music032SidebarItem,
+    useMusic032SidebarItems,
+} from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
 import { useScanStatus } from '/@/renderer/features/shared/hooks/use-scan-status';
 import { CollapsedSidebarButton } from '/@/renderer/features/sidebar/components/collapsed-sidebar-button';
 import { CollapsedSidebarItem } from '/@/renderer/features/sidebar/components/collapsed-sidebar-item';
@@ -22,7 +26,6 @@ import { CollapsedSidebarPlaylistList } from '/@/renderer/features/sidebar/compo
 import { AppMenu } from '/@/renderer/features/titlebar/components/app-menu';
 import { AppRoute } from '/@/renderer/router/routes';
 import {
-    SidebarItemType,
     useCollections,
     useCurrentServer,
     useSidebarCollapsedNavigation,
@@ -47,6 +50,7 @@ export const CollapsedSidebar = () => {
     const sidebarCollapsedNavigation = useSidebarCollapsedNavigation();
     const sidebarItems = useSidebarItems();
     const radioSupported = useInternetRadioSupported();
+    const music032Items = useMusic032SidebarItems();
     const currentServer = useCurrentServer();
     const sidebarPlaylistList = useSidebarPlaylistList();
     const { isScanning } = useScanStatus();
@@ -71,7 +75,7 @@ export const CollapsedSidebar = () => {
         [t],
     );
 
-    const sidebarItemsWithRoute: SidebarItemType[] = useMemo(() => {
+    const sidebarItemsWithRoute: Music032SidebarItem[] = useMemo(() => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
@@ -83,8 +87,13 @@ export const CollapsedSidebar = () => {
                     item.label,
             }));
 
+        if (music032Items.length) {
+            const genresIndex = items.findIndex((item) => item.id === 'Genres');
+            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
+        }
+
         return items;
-    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
+    }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (
         <motion.div
@@ -182,6 +191,7 @@ export const CollapsedSidebar = () => {
                             icon={<SidebarIcon route={item.route} size="25" />}
                             key={item.id}
                             label={item.label}
+                            onClick={item.onClick}
                             route={item.route}
                             to={item.route}
                         />

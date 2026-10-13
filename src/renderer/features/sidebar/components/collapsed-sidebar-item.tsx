@@ -13,6 +13,7 @@ interface CollapsedSidebarItemProps {
     disabled?: boolean;
     icon: ReactNode;
     label: string;
+    onClick?: React.MouseEventHandler<HTMLDivElement>;
     route?: string;
 }
 

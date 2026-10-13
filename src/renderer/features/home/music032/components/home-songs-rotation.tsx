@@ -17,7 +17,7 @@ import {
     isPrimaryRole,
     workRoleLabel,
 } from '/@/renderer/features/home/music032/lib/format';
-import { openMusic032Work } from '/@/renderer/features/home/music032/lib/open-music032-web';
+import { useOpenMusic032Work } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
 import { usePlayer } from '/@/renderer/features/player/context/player-context';
@@ -102,6 +102,7 @@ const SongRowItem = ({ row }: { row: M032HomeSongRow }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
     const player = usePlayer();
+    const openWork = useOpenMusic032Work();
     const { playSongs } = useMusic032HomePlay();
 
     const song: Song = useMemo(
@@ -159,7 +160,7 @@ const SongRowItem = ({ row }: { row: M032HomeSongRow }) => {
             </span>
             <button
                 className={styles.songWork}
-                onClick={() => openMusic032Work(server ?? null, row.work.id)}
+                onClick={() => openWork(row.work.id)}
                 title={row.work.title}
                 type="button"
             >

@@ -4,6 +4,7 @@ import { HashRouter, Route, Routes } from 'react-router';
 import { ShuffleAllContextModal } from '/@/renderer/features/player/components/shuffle-all-modal';
 import { RadioRouteGuard } from '/@/renderer/features/radio/components/radio-route-guard';
 import { SettingsContextModal } from '/@/renderer/features/settings/components/settings-modal';
+import { Music032RouteGuard } from '/@/renderer/features/shared/components/music032-route-guard';
 import { RouterErrorBoundary } from '/@/renderer/features/shared/components/router-error-boundary';
 import { AuthenticationOutlet } from '/@/renderer/layouts/authentication-outlet';
 import { ResponsiveLayout } from '/@/renderer/layouts/responsive-layout';
@@ -80,6 +81,8 @@ const GenreDetailRoute = lazy(
 const FolderListRoute = lazy(() => import('/@/renderer/features/folders/routes/folder-list-route'));
 
 const RadioListRoute = lazy(() => import('/@/renderer/features/radio/routes/radio-list-route'));
+const WorkDetailRoute = lazy(() => import('/@/renderer/features/works/routes/work-detail-route'));
+const WorkListRoute = lazy(() => import('/@/renderer/features/works/routes/work-list-route'));
 
 const SearchRoute = lazy(() => import('/@/renderer/features/search/routes/search-route'));
 
@@ -292,6 +295,22 @@ export const AppRouter = () => {
                                         <Route
                                             element={<SongListRoute />}
                                             path={AppRoute.LIBRARY_SONGS}
+                                        />
+                                        <Route
+                                            element={
+                                                <Music032RouteGuard>
+                                                    <WorkListRoute />
+                                                </Music032RouteGuard>
+                                            }
+                                            path={AppRoute.LIBRARY_WORKS}
+                                        />
+                                        <Route
+                                            element={
+                                                <Music032RouteGuard>
+                                                    <WorkDetailRoute />
+                                                </Music032RouteGuard>
+                                            }
+                                            path={AppRoute.LIBRARY_WORKS_DETAIL}
                                         />
                                         <Route
                                             element={<FolderListRoute />}

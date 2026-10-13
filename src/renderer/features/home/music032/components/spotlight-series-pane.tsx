@@ -11,7 +11,7 @@ import { workTypeLabel } from '/@/renderer/features/home/music032/lib/format';
 import {
     openMusic032Series,
     openMusic032WebPath,
-    openMusic032Work,
+    useOpenMusic032Work,
 } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
@@ -35,6 +35,7 @@ export const SpotlightSeriesPane = ({
     const { t } = useTranslation();
     const navigate = useNavigate();
     const server = useCurrentServerWithCredential();
+    const openWork = useOpenMusic032Work();
     const { playWorks } = useMusic032HomePlay();
 
     const fanArtworks = pane.albums
@@ -53,7 +54,7 @@ export const SpotlightSeriesPane = ({
         if (pane.isSeries) {
             openMusic032Series(server ?? null, pane.seriesId);
         } else if (pane.works[0]) {
-            openMusic032Work(server ?? null, pane.works[0].work.id);
+            openWork(pane.works[0].work.id);
         }
     };
 
@@ -109,7 +110,7 @@ export const SpotlightSeriesPane = ({
                             <button
                                 className={styles.heroChip}
                                 key={work.id}
-                                onClick={() => openMusic032Work(server ?? null, work.id)}
+                                onClick={() => openWork(work.id)}
                                 type="button"
                             >
                                 {work.title}

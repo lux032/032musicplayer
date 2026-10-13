@@ -10,7 +10,7 @@ import {
     HomeSectionError,
 } from '/@/renderer/features/home/music032/components/home-section';
 import { workRoleLabel, workTypeLabel } from '/@/renderer/features/home/music032/lib/format';
-import { openMusic032Work } from '/@/renderer/features/home/music032/lib/open-music032-web';
+import { useOpenMusic032Work } from '/@/renderer/features/home/music032/lib/open-music032-web';
 import { useWorksPlayState } from '/@/renderer/features/home/music032/lib/playing-source';
 import styles from '/@/renderer/features/home/music032/music032-home.module.css';
 import { useMusic032HomePlay } from '/@/renderer/features/home/music032/use-music032-home-play';
@@ -134,6 +134,7 @@ export const HomeWorksRotation = ({ initial }: { initial: M032RotationPage<M032H
 const WorkCard = ({ onPlay, work }: { onPlay: () => void; work: M032HomeWorkCard }) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
+    const openWork = useOpenMusic032Work();
     const playState = useWorksPlayState(server?.id, [work.id]);
 
     return (
@@ -168,7 +169,7 @@ const WorkCard = ({ onPlay, work }: { onPlay: () => void; work: M032HomeWorkCard
                 </span>
                 <button
                     className={styles.workTitle}
-                    onClick={() => openMusic032Work(server ?? null, work.id)}
+                    onClick={() => openWork(work.id)}
                     title={work.title}
                     type="button"
                 >

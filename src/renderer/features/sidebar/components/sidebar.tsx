@@ -12,6 +12,10 @@ import {
     useRadioPlayer,
 } from '/@/renderer/features/radio/hooks/use-radio-player';
 import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
+import {
+    Music032SidebarItem,
+    useMusic032SidebarItems,
+} from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
 import { ActionBar } from '/@/renderer/features/sidebar/components/action-bar';
 import { SidebarCollectionList } from '/@/renderer/features/sidebar/components/sidebar-collection-list';
 import { SidebarIcon } from '/@/renderer/features/sidebar/components/sidebar-icon';
@@ -32,7 +36,6 @@ import {
     useSetFullScreenPlayerStore,
 } from '/@/renderer/store';
 import {
-    SidebarItemType,
     useSidebarImageEnabled,
     useSidebarItems,
     useSidebarPlaylistList,
@@ -91,12 +94,13 @@ export const Sidebar = () => {
 
     const sidebarItems = useSidebarItems();
     const radioSupported = useInternetRadioSupported();
+    const music032Items = useMusic032SidebarItems();
     const { windowBarStyle } = useWindowSettings();
     const sidebarImageEnabled = useSidebarImageEnabled();
     const sidebarImageShown = useAppStore((state) => state.sidebar.image);
     const showImage = sidebarImageEnabled && sidebarImageShown;
 
-    const sidebarItemsWithRoute: SidebarItemType[] = useMemo(() => {
+    const sidebarItemsWithRoute: Music032SidebarItem[] = useMemo(() => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
@@ -108,8 +112,13 @@ export const Sidebar = () => {
                     item.label,
             }));
 
+        if (music032Items.length) {
+            const genresIndex = items.findIndex((item) => item.id === 'Genres');
+            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
+        }
+
         return items;
-    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
+    }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     /* Library accordion: only items with a route (exclude Collections section) */
     const libraryItemsWithRoute = useMemo(
@@ -150,7 +159,11 @@ export const Sidebar = () => {
                         <Accordion.Panel>
                             {libraryItemsWithRoute.map((item) => {
                                 return (
-                                    <SidebarItem key={`sidebar-${item.route}`} to={item.route}>
+                                    <SidebarItem
+                                        key={`sidebar-${item.id}`}
+                                        onClick={item.onClick}
+                                        to={item.route}
+                                    >
                                         <Group gap="md">
                                             <SidebarIcon route={item.route} />
                                             {item.label}

@@ -290,6 +290,9 @@ export const queryKeys: Record<
         works: (serverId: string, args: { batch: number; generation: string; type: string }) =>
             [serverId, 'home', 'works', args] as const,
     },
+    music032: {
+        capabilities: (serverId: string) => [serverId, 'music032', 'capabilities'] as const,
+    },
     musicFolders: {
         list: (serverId: string) => [serverId, 'musicFolders', 'list'] as const,
     },
@@ -371,6 +374,19 @@ export const queryKeys: Record<
             return [serverId, 'search', 'list'] as const;
         },
         root: (serverId: string) => [serverId, 'search'] as const,
+    },
+    series: {
+        albums: (serverId: string, seriesId: number | string) =>
+            [serverId, 'series', 'detail', String(seriesId), 'albums'] as const,
+        detail: (serverId: string, seriesId: number | string) =>
+            [serverId, 'series', 'detail', String(seriesId)] as const,
+        list: (serverId: string, args?: { limit?: number; offset?: number; q?: string }) =>
+            args
+                ? ([serverId, 'series', 'list', args] as const)
+                : ([serverId, 'series', 'list'] as const),
+        root: (serverId: string) => [serverId, 'series'] as const,
+        tracks: (serverId: string, seriesId: number | string) =>
+            [serverId, 'series', 'detail', String(seriesId), 'tracks'] as const,
     },
     server: {
         root: (serverId: string) => [serverId] as const,
@@ -458,5 +474,21 @@ export const queryKeys: Record<
             return [serverId, 'users', 'list'] as const;
         },
         root: (serverId: string) => [serverId, 'users'] as const,
+    },
+    works: {
+        albums: (serverId: string, workId: number | string) =>
+            [serverId, 'works', 'detail', String(workId), 'albums'] as const,
+        detail: (serverId: string, workId: number | string) =>
+            [serverId, 'works', 'detail', String(workId)] as const,
+        list: (
+            serverId: string,
+            args?: { limit?: number; offset?: number; q?: string; sort?: string; type?: string },
+        ) =>
+            args
+                ? ([serverId, 'works', 'list', args] as const)
+                : ([serverId, 'works', 'list'] as const),
+        root: (serverId: string) => [serverId, 'works'] as const,
+        tracks: (serverId: string, workId: number | string) =>
+            [serverId, 'works', 'detail', String(workId), 'tracks'] as const,
     },
 };

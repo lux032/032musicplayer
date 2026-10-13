@@ -259,6 +259,55 @@ export type M032RotationPage<T> = {
     type?: string;
 };
 
+/** GET /api/v1/series 的条目 / 详情里的 series 对象。 */
+export type M032Series = {
+    createdAt: string;
+    id: number;
+    memberCount: number;
+    posterUrl: string;
+    representativeWorkId: number;
+    title: string;
+    titleSource: 'auto' | 'manual' | string;
+    typeCounts: { count: number; type: string }[];
+    updatedAt: string;
+};
+
+/** GET /api/v1/series/{id}/albums 的条目（与主页 spotlight.series.albums[] 相同）。 */
+export type M032SeriesAlbumEntry = {
+    album: M032AlbumWork;
+    play: M032PlayRef;
+    workId: number;
+    workTitle: string;
+};
+
+/** GET /api/v1/series/{id}。 */
+export type M032SeriesDetail = {
+    members: M032SeriesMember[];
+    play: M032PlayRef;
+    series: M032Series;
+    stats: {
+        albumCount: number;
+        memberCount: number;
+        trackCount: number;
+        yearFrom: number;
+        yearTo: number;
+    };
+};
+
+/** GET /api/v1/series/{id} 的成员作品（字段与主页 WorkCard 对齐）。 */
+export type M032SeriesMember = {
+    id: number;
+    play: M032PlayRef;
+    posterUrl: string;
+    readingTitle: string;
+    source: 'auto' | 'manual' | string;
+    title: string;
+    trackCount: number;
+    translatedTitle: string;
+    workType: string;
+    year: number;
+};
+
 export type M032SimilarTrack = {
     distance: number;
     reasons: string[];
@@ -336,8 +385,27 @@ export type M032Work = {
     year: number;
 };
 
+/** GET /api/v1/works/{id}：Work + 详情扩展字段。 */
+export type M032WorkDetail = M032Work & {
+    bangumiSubjectId: string;
+    posterApiUrl: string;
+    series: M032WorkSeriesRef | null;
+    seriesLocked: boolean;
+};
+
+/** GET /api/v1/works/{id} 里所属系列的扩展字段（能力位 workSeriesInfo）。 */
+export type M032WorkSeriesRef = {
+    id: number;
+    memberCount: number;
+    position: number;
+    source: string;
+    title: string;
+    titleSource: string;
+};
+
 export type M032WorkTrack = M032Track & {
     role: string;
     season: number;
     sequence: number;
+    source: string;
 };

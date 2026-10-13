@@ -57,3 +57,44 @@ export const workTypeLabel = (t: TFunction, workType: string): string => {
             return t('page.home.music032.workTypeOther');
     }
 };
+
+/** 全量作品类型标签（作品/系列页用，含 drama / commercial）。 */
+export const workTypeLongLabel = (t: TFunction, workType: string): string => {
+    switch (workType) {
+        case 'commercial':
+            return t('page.works.typeCommercial');
+        case 'drama':
+            return t('page.works.typeDrama');
+        default:
+            return workTypeLabel(t, workType);
+    }
+};
+
+/** 作品海报的本地媒体路径。新版详情带 posterApiUrl；旧服务端列表/详情给的是
+ *  Bangumi 远程地址，这里一律回退到本地海报路由（未缓存时由图片组件显示占位）。 */
+export const workPosterPath = (workId: number, posterUrl: null | string | undefined): string => {
+    if (posterUrl && posterUrl.startsWith('/')) return posterUrl;
+    return `/api/v1/works/${workId}/poster`;
+};
+
+/** 用途标签带序号（OP1 / ED2；sequence 为 0 时不显示数字，与网页一致）。 */
+export const workRoleSequenceLabel = (t: TFunction, role: string, sequence: number): string =>
+    `${workRoleLabel(t, role)}${sequence > 0 ? sequence : ''}`;
+
+/** 专辑级关系标签（ost → 原声集，其他 → 相关）。 */
+export const workAlbumRoleLabel = (t: TFunction, role: string): string =>
+    role === 'ost' ? t('page.works.albumRoleOst') : t('page.works.albumRoleOther');
+
+/** 关联来源标签（auto / manual / bangumi / album）。 */
+export const workSourceLabel = (t: TFunction, source: string): string => {
+    switch (source) {
+        case 'album':
+            return t('page.works.sourceAlbum');
+        case 'bangumi':
+            return t('page.works.sourceBangumi');
+        case 'manual':
+            return t('page.works.sourceManual');
+        default:
+            return t('page.works.sourceAuto');
+    }
+};

@@ -63,5 +63,22 @@ export const useMusic032HomePlay = () => {
         [player, server, t],
     );
 
-    return { appendAlbum, playAlbum, playPlaylist, playSongs, playWorks };
+    const appendWorks = useCallback(
+        async (workIds: number[]) => {
+            if (!server || !workIds.length) return;
+            try {
+                const songs = await expandMusic032WorksToSongs(server, workIds);
+                if (!songs.length) {
+                    toast.warn({ message: t('page.home.music032.noPlayableTracks') });
+                    return;
+                }
+                player.addToQueueByData(songs, Play.LAST);
+            } catch {
+                toast.error({ message: t('page.home.music032.loadFailed') });
+            }
+        },
+        [player, server, t],
+    );
+
+    return { appendAlbum, appendWorks, playAlbum, playPlaylist, playSongs, playWorks };
 };

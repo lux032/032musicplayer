@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import styles from './mobile-sidebar.module.css';
 
 import { useInternetRadioSupported } from '/@/renderer/features/radio/hooks/use-radio-supported';
+import {
+    Music032SidebarItem,
+    useMusic032SidebarItems,
+} from '/@/renderer/features/shared/hooks/use-music032-sidebar-items';
 import { ActionBar } from '/@/renderer/features/sidebar/components/action-bar';
 import { SidebarIcon } from '/@/renderer/features/sidebar/components/sidebar-icon';
 import { SidebarItem } from '/@/renderer/features/sidebar/components/sidebar-item';
@@ -13,11 +17,7 @@ import {
     SidebarSharedPlaylistList,
     useSidebarPlaylistAddDragMonitor,
 } from '/@/renderer/features/sidebar/components/sidebar-playlist-list';
-import {
-    SidebarItemType,
-    useSidebarItems,
-    useSidebarPlaylistList,
-} from '/@/renderer/store/settings.store';
+import { useSidebarItems, useSidebarPlaylistList } from '/@/renderer/store/settings.store';
 import { Accordion } from '/@/shared/components/accordion/accordion';
 import { Group } from '/@/shared/components/group/group';
 import { ScrollArea } from '/@/shared/components/scroll-area/scroll-area';
@@ -57,8 +57,9 @@ export const MobileSidebar = () => {
 
     const sidebarItems = useSidebarItems();
     const radioSupported = useInternetRadioSupported();
+    const music032Items = useMusic032SidebarItems();
 
-    const sidebarItemsWithRoute: SidebarItemType[] = useMemo(() => {
+    const sidebarItemsWithRoute: Music032SidebarItem[] = useMemo(() => {
         if (!sidebarItems) return [];
 
         const items = sidebarItems
@@ -70,8 +71,13 @@ export const MobileSidebar = () => {
                     item.label,
             }));
 
+        if (music032Items.length) {
+            const genresIndex = items.findIndex((item) => item.id === 'Genres');
+            items.splice(genresIndex >= 0 ? genresIndex + 1 : items.length, 0, ...music032Items);
+        }
+
         return items;
-    }, [radioSupported, sidebarItems, translatedSidebarItemMap]);
+    }, [music032Items, radioSupported, sidebarItems, translatedSidebarItemMap]);
 
     return (
         <div className={styles.container} id="mobile-sidebar">
@@ -98,7 +104,11 @@ export const MobileSidebar = () => {
                         <Accordion.Panel>
                             {sidebarItemsWithRoute.map((item) => {
                                 return (
-                                    <SidebarItem key={`sidebar-${item.route}`} to={item.route}>
+                                    <SidebarItem
+                                        key={`sidebar-${item.id}`}
+                                        onClick={item.onClick}
+                                        to={item.route}
+                                    >
                                         <Group gap="sm">
                                             <SidebarIcon route={item.route} />
                                             {item.label}
