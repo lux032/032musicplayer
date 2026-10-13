@@ -25,14 +25,26 @@
 | `src/renderer/features/servers/components/music032-credential-fields.tsx` | API Token + 媒体凭据输入框（添加、编辑、server-lock 登录共用） |
 | `src/renderer/features/servers/assets/music032.png` | 服务端图标，取自 032 的 `internal/http/assets/icon-192.png` |
 | `src/renderer/features/home/music032/` | 032 主页（按 032 网页主页设计重写）：路由根、数据层、聚焦卡 / 接着听 / 最近添加 / 作品轮换 / 主题曲轮换 / 编年 / 歌单 / 页脚统计 / 空库引导，样式走 feishin 主题变量 |
+| `src/renderer/features/works/` | 客户端内作品页：列表（搜索 / 类型 / 排序 / 无限滚动）和详情（hero、系列横幅、关联专辑 + 曲目用途、收录曲目列表、404 态） |
+| `src/renderer/features/series/` | 客户端内系列页：列表（搜索）和详情（统计、播放全部、按类型分组的成员、系列专辑）；接口缺失时的网页回退块 |
+| `src/renderer/features/shared/components/music032/` | 032 页面共享件：海报卡（作品 / 专辑）、曲目行、骨架 / 空 / 错误 / 404 状态块、页面样式模块 |
+| `src/renderer/features/shared/components/playing-indicator/` | 正在播放指示：均衡器竖条组件（暂停冻结、prefers-reduced-motion 静态、主题色）、id+服务器 id 判定纯函数、hooks |
+| `src/renderer/features/shared/components/music032-route-guard.tsx` | 作品 / 系列路由守卫：非 MUSIC032 服务端访问时重定向主页 |
+| `src/renderer/features/shared/hooks/use-music032-capabilities.ts` | `/capabilities` 查询与 `useMusic032SeriesSupported`（系列能力位） |
+| `src/renderer/features/shared/hooks/use-music032-sidebar-items.ts` | 侧边栏注入项（作品 / 系列，仅 MUSIC032，不进持久化设置；系列接口缺失时系列入口打开网页） |
+| `src/renderer/features/radio/hooks/use-radio-supported.ts` | 电台能力判定：只有 MUSIC032 按 INTERNET_RADIO 能力位隐藏，其他类型行为不变 |
+| `src/renderer/features/radio/components/radio-route-guard.tsx` | `/radio` 直接访问在无电台能力时重定向主页 |
 | `scripts/music032/playback-reporter.test.mjs` | 上报状态机单元测试，`pnpm test:music032`（需 Node >= 22.18） |
+| `scripts/music032/playing-indicator.test.mjs` | 播放态判定纯函数 + 作品/系列→曲目会话映射的单元测试 |
 | `MUSIC032_CHANGES.md` | 本文件 |
 
 **合并规则：** 这些文件 plex 和上游都没有，不会冲突。plex 或上游重命名了它们依赖的
 类型或 hook（如 `usePlayerEvents`、`InternalControllerEndpoint`、`ServerFeature`）时，
 以 `pnpm run typecheck` 报错为准跟着改。032 主页额外依赖：`MemoizedItemCard` /
 `useDefaultItemListControls` / `ContextMenuController.call` / `useSetFavorite` /
-`useResumePosition`（续播靠 `Song.resumePositionMs`）/ `getTitlePath` / `ItemImage`，
+`useResumePosition`（续播靠 `Song.resumePositionMs`）/ `getTitlePath` / `ItemImage` /
+`usePlayerSong` / `usePlayerStatus`（正在播放标识），作品 / 系列页还依赖
+`NativeScrollArea` / `LibraryContainer` / `LibraryHeaderBar` / `AnimatedPage`，
 上游改这些接口时同样跟着改。
 
 ---
@@ -58,7 +70,20 @@
 ### `src/renderer/api/query-keys.ts`
 - 追加 `home` 命名空间（`overview` / `works` / `songs` / `chronicle` / `root`），
   供 032 主页使用；`batch` / `generation` / `type` / `year` 进 key。
-- **合并规则：** 保留 `home` 条目，其余取对方。
+- 追加 `music032`（`capabilities`）、`works`（`list` / `detail` / `albums` / `tracks` / `root`）、
+  `series`（同名）命名空间，供作品页、系列页和能力位查询使用。
+- **合并规则：** 保留这些条目，其余取对方。
+
+### `src/renderer/router/routes.ts`、`src/renderer/router/app-router.tsx`
+- `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL`；
+  四条路由挂在 `Music032RouteGuard` 下（非 MUSIC032 重定向主页）。
+- `/radio` 路由包一层 `RadioRouteGuard`（无 `INTERNET_RADIO` 能力位时重定向主页）。
+- **合并规则：** 保留新增的枚举值、lazy import 和路由块，其余取对方。
+
+### `src/shared/types/features-types.ts` 和各 controller 的 `getServerInfo`
+- `ServerFeature` 新增 `INTERNET_RADIO = 'internetRadio'`；Plex / Jellyfin / Subsonic
+  controller 声明 `[1]`（Navidrome 继承 Subsonic 的 features），music032 **不声明**。
+- **合并规则：** 保留枚举值和各 controller 里那一行声明。
 
 ### `src/renderer/store/auth.store.ts`
 - `logout()` 同时清空 `mediaToken`。401 不清空媒体凭据，所以 API Token 被轮换后，重新登录只需要填 API Token。
@@ -75,6 +100,21 @@
 `server-list.tsx`、`server-selector.tsx`、`server-selector-items.tsx`、`collapsed-sidebar.tsx`、`server-required.tsx`
 - 在 `PLEX` 分支前插入 `MUSIC032 ? Music032Logo`。
 - **合并规则：** 保留 `Music032Logo` 的 import 和那一个分支。
+
+### 侧边栏组件（`sidebar.tsx`、`collapsed-sidebar.tsx`、`mobile-sidebar.tsx`、`sidebar-icon.tsx`、`collapsed-sidebar-item.tsx`）
+- 条目 memo 的过滤条件加 `(item.id !== 'Radio' || radioSupported)`，
+  `radioSupported` 来自 `useInternetRadioSupported()`（MUSIC032 未声明 `INTERNET_RADIO` 时隐藏电台）；
+  memo 末尾在 `Genres` 后 splice 注入 `useMusic032SidebarItems()` 的作品 / 系列项
+  （id 为 `M032Works` / `M032Series`，不进持久化设置），条目渲染透传 `onClick`。
+- `sidebar-icon.tsx`：`LIBRARY_WORKS` / `LIBRARY_SERIES` 两个 case（RiBookOpen / RiStack）。
+- `collapsed-sidebar-item.tsx`：props 增加可选 `onClick`（原本就透传其余 props 到 Flex）。
+- **合并规则：** 保留 `radioSupported` / `music032Items` 两行引用、过滤条件、splice 块、
+  两个图标 case 和 `onClick` prop；其余取对方。
+
+### `src/renderer/features/settings/components/general/sidebar-reorder.tsx`
+- 电台不受支持时从排序列表里隐藏 Radio 行；`setItemsPreservingRadio` 保证隐藏期间
+  重排不丢持久化的 Radio 设置项。
+- **合并规则：** 保留 `radioSupported` 相关两段。
 
 ### `src/renderer/features/shared/components/list-sort-by-dropdown.tsx`
 - 每张排序表都加 `[ServerType.MUSIC032]`，只列出 032 真正支持的排序（专辑：名称、最近添加、最近播放、发行日期、发行年份；歌曲：专辑、名称、播放次数、最近播放、发行日期、年份；艺人：名称、专辑数、歌曲数；歌单：名称、时长、歌曲数）。
@@ -121,7 +161,8 @@
 
 不声明：`REPORT_PLAYBACK`（上报走专用模块）、`STAR_RATING`、`SERVER_PLAY_QUEUE`、
 `SHARING_ALBUM_SONG`、`PUBLIC_PLAYLIST`、`PLAYLISTS_SMART`、`TAGS`、`JUKEBOX`、
-`ARTIST_IMAGE_UPLOAD`、`MUSIC_FOLDER_MULTISELECT`。
+`ARTIST_IMAGE_UPLOAD`、`MUSIC_FOLDER_MULTISELECT`、`INTERNET_RADIO`（032 没有电台，
+界面入口随之隐藏）。
 
 ---
 
@@ -138,9 +179,14 @@
 
 ## 已知限制（客户端侧）
 
-- **032 主页**：作品和系列在客户端没有页面，标题/chips/「查看系列」等跳转用系统浏览器打开
-  032 网页端对应地址（集中在 `home/music032/lib/open-music032-web.ts`，将来有客户端内页面时只改这里）。
+- **032 主页**：作品和系列已有客户端内页面（`/library/works*`、`/library/series*`），主页、专辑页等
+  入口统一走客户端路由；「在网页中打开」作为页面内的次要操作保留（编辑、管理用）。
   网页主页的搜索框未移植（feishin 有全局搜索）；「接着听」的「播放记录」和页脚「待审核」同样跳网页。
+- **作品卡片播放徽标**：作品 / 系列卡片的播放态来自会话级“作品→曲目”映射（播放展开时记录，
+  上限 200 条）；从专辑页等其他入口开始播放时不亮（等 C11）。
+- **作品列表首字母索引**：`/works` 的 `index` 参数客户端暂未使用（网页有首字母索引栏）。
+- **系列接口回退**：服务端没有系列能力位或返回 404 时，侧边栏「系列」入口打开网页，
+  系列路由页显示降级块；作品详情在旧服务端上没有系列横幅和 Bangumi 链接（字段缺失按无处理）。
 - **排序方向**：032 每种排序的方向固定，界面上的升序/降序切换对 032 列表无效（等 C2）。
 - **多值筛选**：artist / genre / album 筛选只取第一个值；多张专辑会逐个请求再拼接。
 - **专辑年份**：专辑列表只能按单个年份精确筛选（`minYear == maxYear`）；歌曲列表支持区间。
@@ -169,6 +215,7 @@
 | C7 | C2 的 browse 接口里，曲目带 `albumArtists:[{id,name}]`、专辑带 `artists:[{id,name}]` | 列表里的专辑艺人可点击跳转 |
 | C8 | C2 的 `/browse/albums` 支持 `yearFrom`/`yearTo` | 与 `/tracks` 一致 |
 | C10（可选） | `GET /api/v1/server-info` → `{libraryName}` | 界面上显示的用户名，现在固定为 `032` |
+| C11 | `GET /api/v1/tracks/{id}/works` → `{items:[{id,title}]}`（或在曲目对象里带 `works`） | 作品 / 系列卡片的“正在播放”徽标精确化；现在是会话级映射，只有从卡片 / 作品页 / 系列页开始播放才亮 |
 
 （原 C9"专辑详情超过 500 首"已在客户端解决：`trackCount` 大于嵌入的曲目数时改用 `/tracks?album=` 分页补齐。）
 
