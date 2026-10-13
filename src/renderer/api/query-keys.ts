@@ -290,6 +290,7 @@ export const queryKeys: Record<
         chronicle: (serverId: string, year: number) =>
             [serverId, 'home', 'chronicle', year] as const,
         overview: (serverId: string) => [serverId, 'home', 'overview'] as const,
+        recentPlayed: (serverId: string) => [serverId, 'home', 'recentPlayed'] as const,
         root: (serverId: string) => [serverId, 'home'] as const,
         songs: (serverId: string, args: { batch: number; generation: string }) =>
             [serverId, 'home', 'songs', args] as const,

@@ -9,6 +9,7 @@ import { HomeChronicle } from '/@/renderer/features/home/music032/components/hom
 import { HomeFirstRun } from '/@/renderer/features/home/music032/components/home-first-run';
 import { HomePlaylists } from '/@/renderer/features/home/music032/components/home-playlists';
 import { HomeRecentAlbums } from '/@/renderer/features/home/music032/components/home-recent-albums';
+import { HomeRecentPlayed } from '/@/renderer/features/home/music032/components/home-recent-played';
 import { HomeResume } from '/@/renderer/features/home/music032/components/home-resume';
 import { HomeSectionError } from '/@/renderer/features/home/music032/components/home-section';
 import { HomeSongsRotation } from '/@/renderer/features/home/music032/components/home-songs-rotation';
@@ -95,7 +96,12 @@ export const Music032HomeRoute = ({ fallback }: { fallback: ReactNode }) => {
                             <>
                                 {data.spotlight && <HomeSpotlight spotlight={data.spotlight} />}
                                 <div className={styles.duo}>
-                                    <HomeResume records={data.resume} />
+                                    <div className={styles.duoMain}>
+                                        <HomeResume records={data.resume} />
+                                        <HomeRecentPlayed
+                                            excludeTrackIds={data.resume.map((r) => r.trackId)}
+                                        />
+                                    </div>
                                     {data.recentAlbums.length > 0 && (
                                         <HomeRecentAlbums albums={data.recentAlbums} />
                                     )}

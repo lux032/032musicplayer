@@ -907,6 +907,7 @@
                 "relatedTracksCount": "{{count}} 首关联歌曲",
                 "renewNotice": "今日推荐已更新",
                 "reroll": "换一张",
+                "recentPlayed": "最近播放",
                 "resume": "接着听",
                 "resumeCount": "{{count}} 首未听完",
                 "resumeEmpty": "还没有未听完的歌曲",

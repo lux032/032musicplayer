@@ -8,7 +8,9 @@ import {
     M032HomeResponse,
     M032HomeSongRow,
     M032HomeWorkCard,
+    M032Page,
     M032RotationPage,
+    M032Track,
     M032WorkTrack,
 } from '/@/shared/api/music032/music032-types';
 import { ServerListItemWithCredential } from '/@/shared/types/domain-types';
@@ -43,6 +45,16 @@ export const music032HomeQueries = {
         queryOptions({
             queryFn: ({ signal }) => client(server, signal).get<M032HomeResponse>('/home'),
             queryKey: queryKeys.home.overview(server.id),
+            staleTime: STALE_TIME,
+        }),
+    /** 最近播放的曲目（含已听完），用来填接着听下方的空余；从未播放的排在末尾，由调用方过滤。 */
+    recentPlayed: (server: ServerListItemWithCredential) =>
+        queryOptions({
+            queryFn: ({ signal }) =>
+                client(server, signal).get<M032Page<M032Track>>('/tracks', {
+                    query: { limit: 16, sort: 'recentlyPlayed' },
+                }),
+            queryKey: queryKeys.home.recentPlayed(server.id),
             staleTime: STALE_TIME,
         }),
     songs: (server: ServerListItemWithCredential, args: M032HomeSongsArgs) =>
