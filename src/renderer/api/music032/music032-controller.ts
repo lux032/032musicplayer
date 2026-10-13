@@ -700,8 +700,9 @@ export const Music032Controller: InternalControllerEndpoint = {
               : query.itemType === LibraryItem.ALBUM_ARTIST || query.itemType === LibraryItem.ARTIST
                 ? `/api/v1/artists/${query.id}/image`
                 : null;
+        // size 0 means "original" (fullScreenPlayer default); the server rejects size=0.
         return m032MediaUrl(baseUrl ? { ...ctx, baseUrl: baseUrl.replace(/\/$/, '') } : ctx, path, {
-            size: query.size,
+            size: query.size || undefined,
         });
     },
 
