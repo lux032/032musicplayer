@@ -9,9 +9,6 @@ on:
                 description: 'Docker image tag (e.g. 1.12.0 or latest)'
                 required: true
                 type: string
-    push:
-        tags:
-            - 'v*.*.*'
 
 env:
     REGISTRY: ghcr.io

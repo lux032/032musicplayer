@@ -9,9 +9,6 @@ on:
                 description: 'Semantic version number (e.g., 1.0.0) - alpha suffix will be added automatically'
                 required: false
                 type: string
-    schedule:
-        # Run at 3:00 AM PST daily (11:00 UTC; PST = UTC-8)
-        - cron: '0 11 * * *'
 
 jobs:
     check-new-commits:

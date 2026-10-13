@@ -6,6 +6,9 @@ jobs:
     publish:
         runs-on: ${{ matrix.os }}
 
+        permissions:
+            contents: write
+
         strategy:
             matrix:
                 os: [windows-latest]
@@ -31,3 +34,10 @@ jobs:
                   command: |
                       pnpm run publish:win
                   on_retry_command: pnpm cache delete
+
+            # electron-builder only creates a draft release; publish it once the upload succeeded.
+            - name: Publish draft release
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: gh release edit "v$(node -p "require('./package.json').version")" --draft=false
