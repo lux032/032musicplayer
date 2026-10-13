@@ -524,7 +524,6 @@
         },
         "works": {
             "addToQueue": "加入佇列",
-            "albumRoleOst": "原聲集",
             "albumRoleOther": "相關",
             "albumsTitle": "關聯專輯",
             "albumsCount": "{{count}} 張整張關聯專輯",
@@ -557,7 +556,16 @@
             "typeCommercial": "廣告",
             "typeDrama": "電視劇",
             "albumsEmpty": "尚無關聯專輯",
-            "collectedEmpty": "還沒有獨立收錄曲目"
+            "collectedEmpty": "還沒有獨立收錄曲目",
+            "albumTypeAlbum": "專輯",
+            "albumTypeSingle": "單曲",
+            "albumTypeEp": "EP",
+            "albumTypeCompilation": "合輯",
+            "albumTypeSoundtrack": "原聲",
+            "albumTypeLive": "現場",
+            "albumTypeBootleg": "非官方發行",
+            "albumTypeOther": "其他",
+            "relationOst": "原聲集 OST"
         },
         "series": {
             "addToQueue": "加入佇列",

@@ -1109,7 +1109,6 @@
         },
         "works": {
             "addToQueue": "加入队列",
-            "albumRoleOst": "原声集",
             "albumRoleOther": "相关",
             "albumsTitle": "关联专辑",
             "albumsCount": "{{count}} 张整张关联专辑",
@@ -1142,7 +1141,16 @@
             "typeCommercial": "广告",
             "typeDrama": "电视剧",
             "albumsEmpty": "尚无关联专辑",
-            "collectedEmpty": "还没有独立收录曲目"
+            "collectedEmpty": "还没有独立收录曲目",
+            "albumTypeAlbum": "专辑",
+            "albumTypeSingle": "单曲",
+            "albumTypeEp": "EP",
+            "albumTypeCompilation": "合辑",
+            "albumTypeSoundtrack": "原声",
+            "albumTypeLive": "现场",
+            "albumTypeBootleg": "非官方发行",
+            "albumTypeOther": "其他",
+            "relationOst": "原声集 OST"
         },
         "series": {
             "addToQueue": "加入队列",

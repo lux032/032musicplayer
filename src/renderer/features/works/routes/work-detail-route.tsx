@@ -9,7 +9,8 @@ import { ItemImage } from '/@/renderer/components/item-image/item-image';
 import { getTitlePath } from '/@/renderer/components/item-list/helpers/get-title-path';
 import { NativeScrollArea } from '/@/renderer/components/native-scroll-area/native-scroll-area';
 import {
-    workAlbumRoleLabel,
+    workAlbumRelationLabel,
+    workAlbumTypeLabel,
     workPosterPath,
     workRoleSequenceLabel,
     workSourceLabel,
@@ -273,9 +274,9 @@ const WorkDetailRoute = () => {
                                                             artworkUrl={album.artworkUrl}
                                                             meta={[
                                                                 album.year || null,
-                                                                workAlbumRoleLabel(
+                                                                workAlbumTypeLabel(
                                                                     t,
-                                                                    album.albumRole || album.role,
+                                                                    album.albumType || '',
                                                                 ),
                                                                 workSourceLabel(t, album.source),
                                                             ]
@@ -284,9 +285,9 @@ const WorkDetailRoute = () => {
                                                             onPlay={() =>
                                                                 playAlbum(String(album.albumId))
                                                             }
-                                                            roleLabel={workAlbumRoleLabel(
+                                                            roleLabel={workAlbumRelationLabel(
                                                                 t,
-                                                                album.albumRole || album.role,
+                                                                album,
                                                             )}
                                                             title={album.title}
                                                             to={albumPath || '#'}

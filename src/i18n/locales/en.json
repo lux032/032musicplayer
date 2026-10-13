@@ -849,7 +849,6 @@
         },
         "works": {
             "addToQueue": "Add to queue",
-            "albumRoleOst": "Soundtrack",
             "albumRoleOther": "Related",
             "albumsTitle": "Related albums",
             "albumsCount": "{{count}} albums linked as a whole",
@@ -882,7 +881,16 @@
             "typeCommercial": "Commercial",
             "typeDrama": "Drama",
             "albumsEmpty": "No related albums yet",
-            "collectedEmpty": "No standalone tracks yet"
+            "collectedEmpty": "No standalone tracks yet",
+            "albumTypeAlbum": "album",
+            "albumTypeSingle": "single",
+            "albumTypeEp": "EP",
+            "albumTypeCompilation": "compilation",
+            "albumTypeSoundtrack": "soundtrack",
+            "albumTypeLive": "live",
+            "albumTypeBootleg": "bootleg",
+            "albumTypeOther": "other",
+            "relationOst": "OST"
         },
         "series": {
             "addToQueue": "Add to queue",

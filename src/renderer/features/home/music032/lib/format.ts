@@ -81,9 +81,51 @@ export const workPosterPath = (workId: number, posterUrl: null | string | undefi
 export const workRoleSequenceLabel = (t: TFunction, role: string, sequence: number): string =>
     `${workRoleLabel(t, role)}${sequence > 0 ? sequence : ''}`;
 
-/** 专辑级关系标签（ost → 原声集，其他 → 相关）。 */
-export const workAlbumRoleLabel = (t: TFunction, role: string): string =>
-    role === 'ost' ? t('page.works.albumRoleOst') : t('page.works.albumRoleOther');
+/** 专辑类型标签（album / single / ep …，与网页 albumTypeLabel 一致）。 */
+export const workAlbumTypeLabel = (t: TFunction, albumType: string): string => {
+    switch (albumType) {
+        case 'album':
+            return t('page.works.albumTypeAlbum');
+        case 'bootleg':
+            return t('page.works.albumTypeBootleg');
+        case 'compilation':
+            return t('page.works.albumTypeCompilation');
+        case 'ep':
+            return t('page.works.albumTypeEp');
+        case 'live':
+            return t('page.works.albumTypeLive');
+        case 'single':
+            return t('page.works.albumTypeSingle');
+        case 'soundtrack':
+            return t('page.works.albumTypeSoundtrack');
+        default:
+            return t('page.works.albumTypeOther');
+    }
+};
+
+/** 关联专辑封面上的关系标注，与网页 workAlbumRelationLabel 一致：
+ *  专辑级 ost + 无有效曲目用途 → 原声集 OST；否则 用途 + 专辑/单曲后缀。 */
+export const workAlbumRelationLabel = (
+    t: TFunction,
+    albumWork: { albumRole?: string; albumType?: string; role?: string; trackRoles?: string[] },
+): string => {
+    const albumRole = albumWork.albumRole || albumWork.role || '';
+    const isOst = albumRole === 'ost';
+    const meaningful = (albumWork.trackRoles || []).filter(
+        (role) => role && role !== 'other' && !(role === 'ost' && isOst),
+    );
+    if (isOst && meaningful.length === 0) return t('page.works.relationOst');
+
+    const suffix = workAlbumTypeLabel(t, albumWork.albumType || 'album');
+    const parts: string[] = [];
+    if (isOst) parts.push('OST');
+    for (const role of meaningful) {
+        const short = workRoleLabel(t, role);
+        if (!parts.includes(short)) parts.push(short);
+    }
+    if (parts.length > 0) return `${parts.join(' · ')} ${suffix}`;
+    return `${t('page.works.albumRoleOther')}${suffix}`;
+};
 
 /** 关联来源标签（auto / manual / bangumi / album）。 */
 export const workSourceLabel = (t: TFunction, source: string): string => {
