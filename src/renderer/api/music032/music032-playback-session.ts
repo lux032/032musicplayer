@@ -53,7 +53,11 @@ export type PlaybackEventBody = {
 
 export type PlaybackSessionOptions = {
     clearTimeout?: (id: unknown) => void;
-    clientKind?: string;
+    /**
+     * clientKind of new sessions. A function is read once per session, so a
+     * session keeps the kind it started with (the server rejects a change).
+     */
+    clientKind?: (() => string) | string;
     getDurationMillis?: () => number;
     getPositionMillis?: () => number;
     heartbeatActiveMillis?: number;
@@ -111,6 +115,8 @@ type JobExtra = {
 };
 
 type Session = {
+    /** Fixed for the life of the session: the server treats a change as a conflict. */
+    clientKind: string;
     context: null | PlaybackContext;
     endDelivered: boolean;
     ended: boolean;
@@ -152,8 +158,9 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
     const heartbeatActiveMillis = options.heartbeatActiveMillis || 15000;
     const heartbeatPausedMillis = options.heartbeatPausedMillis || 60000;
     const retryDelaysMillis = options.retryDelaysMillis || [1000, 3000];
-    // 032 currently accepts web|android only; see MUSIC032_CHANGES.md (C list).
-    const clientKind = options.clientKind || 'web';
+    const clientKindOption = options.clientKind;
+    const resolveClientKind = () =>
+        (typeof clientKindOption === 'function' ? clientKindOption() : clientKindOption) || 'web';
     const onProtocolError = options.onProtocolError || (() => undefined);
 
     const CLIENT_ID_KEY = `${prefix}_client_id`;
@@ -260,6 +267,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
     const newSession = (trackId: number, state?: PlaybackState): Session => {
         const initialState = state || 'buffering';
         return {
+            clientKind: resolveClientKind(),
             context: null,
             endDelivered: false,
             ended: false,
@@ -345,7 +353,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
         sess.seq += 1;
         const body: PlaybackEventBody = {
             clientId: loadClientId(),
-            clientKind,
+            clientKind: sess.clientKind,
             durationMillis: job.durationMillis,
             positionMillis: job.refreshPosition ? probePosition() : job.positionMillis,
             seq: sess.seq,
@@ -677,7 +685,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
             cancelHeartbeat();
             const body: PlaybackEventBody = {
                 clientId: loadClientId(),
-                clientKind,
+                clientKind: sess.clientKind,
                 durationMillis:
                     at.durationMillis !== undefined
                         ? clampMillis(at.durationMillis)

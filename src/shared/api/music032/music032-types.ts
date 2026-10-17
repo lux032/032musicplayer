@@ -105,6 +105,11 @@ export type M032Capabilities = {
     apiRevision: number;
     apiVersion: string;
     features: Record<string, boolean>;
+    playback?: {
+        /** Accepted clientKind values; servers before C4 omit it and only accept web/android. */
+        clientKinds?: string[];
+        contextTypes?: string[];
+    };
     transcode?: {
         available: boolean;
         formats: Partial<Record<'flac' | 'mp3' | 'ogg', M032TranscodeFormat>>;

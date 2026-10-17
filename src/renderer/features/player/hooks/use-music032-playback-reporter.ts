@@ -12,11 +12,14 @@ import {
     PlaybackEventBody,
     TransportResponse,
 } from '/@/renderer/api/music032/music032-playback-session';
+import { queryKeys } from '/@/renderer/api/query-keys';
 import { eventEmitter } from '/@/renderer/events/event-emitter';
 import { usePlayerEvents } from '/@/renderer/features/player/audio-player/hooks/use-player-events';
+import { queryClient } from '/@/renderer/lib/react-query';
 import { getServerById, usePlayerStore, useTimestampStoreBase } from '/@/renderer/store';
 import { logger } from '/@/renderer/utils/logger';
 import { getServerUrl } from '/@/renderer/utils/normalize-server-url';
+import { M032Capabilities } from '/@/shared/api/music032/music032-types';
 import { QueueSong, ServerType } from '/@/shared/types/domain-types';
 import { PlayerStatus } from '/@/shared/types/types';
 
@@ -67,6 +70,18 @@ const createTransport =
         return { json, status: res.status } satisfies TransportResponse;
     };
 
+// The desktop app reports clientKind desktop once the server lists it
+// (capabilities.playback.clientKinds, C4); older servers reject it with 400.
+// Capabilities are read from the query cache: until they are loaded a new
+// session reports web, which every server accepts.
+const clientKindFor = (serverId: string) => () => {
+    if (!isElectron()) return 'web';
+    const capabilities = queryClient.getQueryData<M032Capabilities>(
+        queryKeys.music032.capabilities(serverId),
+    );
+    return capabilities?.playback?.clientKinds?.includes('desktop') ? 'desktop' : 'web';
+};
+
 const reporters = new Map<string, Music032PlaybackAdapter>();
 
 const getReporter = (serverId: string) => {
@@ -74,6 +89,7 @@ const getReporter = (serverId: string) => {
     if (adapter) return adapter;
 
     const session = createPlaybackSession({
+        clientKind: clientKindFor(serverId),
         getDurationMillis: () => adapter!.getDurationMillis(),
         getPositionMillis: () => adapter!.getPositionMillis(),
         onProtocolError: (info) => logger.warn('032 playback session stopped reporting', info),

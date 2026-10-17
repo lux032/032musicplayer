@@ -22,7 +22,7 @@ const memoryStorage = () => {
     };
 };
 
-const createHarness = ({ respond, storage = memoryStorage() } = {}) => {
+const createHarness = ({ clientKind, respond, storage = memoryStorage() } = {}) => {
     const sent = [];
     const keepalive = [];
     const timers = new Map();
@@ -42,6 +42,7 @@ const createHarness = ({ respond, storage = memoryStorage() } = {}) => {
     let adapter;
     const session = createPlaybackSession({
         clearTimeout: (id) => timers.delete(id),
+        clientKind,
         getDurationMillis: () => adapter.getDurationMillis(),
         getPositionMillis: () => adapter.getPositionMillis(),
         retryDelaysMillis: [],
@@ -97,6 +98,27 @@ const playTo = async (h, track, positionSec) => {
 };
 
 describe('032 playback reporting', () => {
+    test('clientKind defaults to web and is fixed per session when it is a function', async () => {
+        const plain = createHarness();
+        await playTo(plain, A, 1);
+        assert.equal(plain.sent[0].clientKind, 'web');
+
+        let kind = 'web';
+        const h = createHarness({ clientKind: () => kind });
+        await playTo(h, A, 2);
+        // Capabilities arrive mid-session: the running session keeps its kind.
+        kind = 'desktop';
+        await h.act((a) => a.onStatus('paused'));
+        await h.act((a) => {
+            a.onProgress(0);
+            a.onTrackChange(B);
+            a.onUserNavigate();
+            a.onStatus('playing');
+        });
+        const kinds = h.sent.map((e) => `${e.type}:${e.trackId}:${e.clientKind}`);
+        assert.deepEqual(kinds, ['start:1:web', 'pause:1:web', 'end:1:web', 'start:2:desktop']);
+    });
+
     test('normal completion: auto-advance ends with completed at the real final position', async () => {
         const h = createHarness();
         await playTo(h, A, 239);
