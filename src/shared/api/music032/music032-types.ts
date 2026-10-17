@@ -278,6 +278,8 @@ export type M032Playlist = {
     artworkUrl?: string;
     createdAt: string;
     description: string;
+    // Missing on servers older than the playlist-duration change.
+    durationMillis?: number;
     hasCustomArtwork: boolean;
     id: number;
     itemCount: number;

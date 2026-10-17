@@ -262,7 +262,9 @@ const normalizePlaylist = (
     blurHash: null,
     description: nullIfEmpty(item.description),
     dominantColor: null,
-    duration: tracks ? tracks.reduce((sum, t) => sum + (t.durationMillis || 0), 0) : null,
+    duration:
+        item.durationMillis ??
+        (tracks ? tracks.reduce((sum, t) => sum + (t.durationMillis || 0), 0) : null),
     evaluatedAt: null,
     genres: [],
     id: String(item.id),

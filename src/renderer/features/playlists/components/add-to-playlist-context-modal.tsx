@@ -603,12 +603,14 @@ const PlaylistTableItem = memo(
                                             {item.songCount}
                                         </Text>
                                     </Group>
-                                    <Group align="center" gap="xs" wrap="nowrap">
-                                        <Icon color="muted" icon="duration" size="sm" />
-                                        <Text isMuted size="sm">
-                                            {formatDurationString(item.duration ?? 0)}
-                                        </Text>
-                                    </Group>
+                                    {item.duration != null && (
+                                        <Group align="center" gap="xs" wrap="nowrap">
+                                            <Icon color="muted" icon="duration" size="sm" />
+                                            <Text isMuted size="sm">
+                                                {formatDurationString(item.duration)}
+                                            </Text>
+                                        </Group>
+                                    )}
                                 </Group>
 
                                 <Text className={styles.statusText} isMuted size="sm">

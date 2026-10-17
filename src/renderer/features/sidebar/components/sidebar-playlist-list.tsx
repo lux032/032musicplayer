@@ -392,12 +392,14 @@ export const PlaylistRowButton = memo(
                                             {item.songCount || 0}
                                         </Text>
                                     </div>
-                                    <div className={styles.metadataGroupItem}>
-                                        <Icon color="muted" icon="duration" size="sm" />
-                                        <Text isMuted size="sm">
-                                            {formatDurationString(item.duration ?? 0)}
-                                        </Text>
-                                    </div>
+                                    {item.duration != null && (
+                                        <div className={styles.metadataGroupItem}>
+                                            <Icon color="muted" icon="duration" size="sm" />
+                                            <Text isMuted size="sm">
+                                                {formatDurationString(item.duration)}
+                                            </Text>
+                                        </div>
+                                    )}
                                     {item.ownerId === permissions.userId &&
                                         Boolean(item.public) && (
                                             <div className={styles.metadataGroupItem}>
