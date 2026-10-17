@@ -36,6 +36,16 @@ jobs:
             - name: Install dependencies
               run: pnpm install
 
+            # Every build gets its own patch version (major.minor from package.json, patch = run
+            # number). Installed apps only auto-update to a higher version, so rebuilding the same
+            # version would never reach them.
+            - name: Set build version
+              shell: bash
+              env:
+                  RUN_NUMBER: ${{ github.run_number }}
+              run: |
+                  node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));const [a,b]=p.version.split('.');p.version=a+'.'+b+'.'+process.env.RUN_NUMBER;fs.writeFileSync('package.json',JSON.stringify(p,null,4)+'\n');console.log('version',p.version)"
+
             # electron-builder skips uploads to an already published release with the same version,
             # so reopen it as a draft and let the build overwrite its assets.
             - name: Reopen existing release as draft
