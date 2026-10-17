@@ -1,24 +1,33 @@
 {
-    "name": "feishin",
+    "name": "032musicplayer",
     "version": "1.17.4",
-    "description": "A modern self-hosted music player.",
+    "description": "Desktop client for 032 Music Server, built on Feishin.",
     "keywords": [
-        "subsonic",
-        "navidrome",
-        "jellyfin",
+        "032music",
+        "music-player",
+        "feishin",
         "react",
         "electron"
     ],
-    "homepage": "https://github.com/jeffvli/feishin",
+    "homepage": "https://github.com/lux032/032musicplayer",
     "bugs": {
-        "url": "https://github.com/jeffvli/feishin/issues"
+        "url": "https://github.com/lux032/032musicplayer/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lux032/032musicplayer.git"
     },
     "license": "GPL-3.0",
     "author": {
-        "name": "jeffvli",
-        "email": "feishin@users.noreply.github.com",
-        "url": "https://github.com/jeffvli/"
+        "name": "lux032",
+        "url": "https://github.com/lux032/"
     },
+    "contributors": [
+        {
+            "name": "jeffvli (Feishin)",
+            "url": "https://github.com/jeffvli/feishin"
+        }
+    ],
     "main": "./out/main/index.js",
     "scripts": {
         "build": "pnpm run build:electron && pnpm run build:remote",

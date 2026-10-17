@@ -1,5 +1,5 @@
-# Alpha builds published to Cloudflare R2 with date versioning (e.g. 1.0.0-alpha-20260205).
-# Required repo secrets: R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (from R2 API token in Cloudflare dashboard).
+# Alpha builds published to this repo's GitHub releases (channel "alpha", see
+# electron-builder-alpha.yml) with date versioning (e.g. 1.0.0-alpha-20260205).
 name: Publish Alpha
 
 on:
@@ -95,24 +95,11 @@ jobs:
 
                   echo "version=$alphaVersion" >> $env:GITHUB_OUTPUT
 
-    cleanup:
-        needs: prepare
-        runs-on: ubuntu-latest
-        env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-            R2_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
-        steps:
-            - name: Delete all objects in R2 bucket
-              run: |
-                  aws s3 rm s3://feishin-nightly --recursive --endpoint-url $R2_ENDPOINT_URL
-
     publish:
-        needs: [prepare, cleanup]
+        needs: [prepare]
         runs-on: ${{ matrix.os }}
         env:
-            AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-            AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         strategy:
             matrix:
@@ -137,7 +124,7 @@ jobs:
                   $packageJson.version = $version
                   $packageJson | ConvertTo-Json -Depth 10 | Set-Content package.json
 
-            - name: Build and Publish to R2 (Windows)
+            - name: Build and Publish (Windows)
               if: matrix.os == 'windows-latest'
               uses: nick-fields/retry@v4
               with:
@@ -148,7 +135,7 @@ jobs:
                       pnpm run publish:win:alpha
                   on_retry_command: pnpm cache delete
 
-            - name: Build and Publish to R2 (macOS)
+            - name: Build and Publish (macOS)
               if: matrix.os == 'macos-26'
               uses: nick-fields/retry@v4
               with:
@@ -159,7 +146,7 @@ jobs:
                       pnpm run publish:mac:alpha
                   on_retry_command: pnpm cache delete
 
-            - name: Build and Publish to R2 (Linux)
+            - name: Build and Publish (Linux)
               if: matrix.os == 'ubuntu-latest'
               uses: nick-fields/retry@v4
               with:
@@ -170,7 +157,7 @@ jobs:
                       pnpm run publish:linux:alpha
                   on_retry_command: pnpm cache delete
 
-            - name: Build and Publish to R2 (Linux ARM64)
+            - name: Build and Publish (Linux ARM64)
               if: matrix.os == 'ubuntu-latest'
               uses: nick-fields/retry@v4
               with:
