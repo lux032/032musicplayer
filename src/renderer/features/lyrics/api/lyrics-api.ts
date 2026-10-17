@@ -211,6 +211,7 @@ const requireServer = (serverId: string) => {
 };
 
 const NO_LYRICS_STALE_MS = 30 * 1000;
+const FOUND_LYRICS_STALE_MS = 12 * 60 * 60 * 1000;
 
 export const lyricsQueries = {
     search: (args: QueryHookArgs<LyricSearchQuery>) => {
@@ -266,11 +267,12 @@ export const lyricsQueries = {
                 };
             },
             queryKey: lyricsKey,
-            // Found lyrics only change through this client (pick / clear invalidate them).
-            // "No lyrics" can be filled in later by the server (an online lookup that
-            // failed transiently, a pick on another device), so ask again on the next
-            // visit instead of keeping the empty result for the whole session.
-            staleTime: (query) => (query.state.data?.selected ? Infinity : NO_LYRICS_STALE_MS),
+            // Results are persisted across restarts. Found lyrics are refreshed after
+            // FOUND_LYRICS_STALE_MS so picks on other devices and admin changes arrive;
+            // "no lyrics" is asked again on the next visit, since the server may find
+            // them later (a lookup that failed transiently, a pick elsewhere).
+            staleTime: (query) =>
+                query.state.data?.selected ? FOUND_LYRICS_STALE_MS : NO_LYRICS_STALE_MS,
             ...args.options,
         });
     },

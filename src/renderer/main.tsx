@@ -29,7 +29,9 @@ createRoot(document.getElementById('root')!).render(
     <PersistQueryClientProvider
         client={queryClient}
         persistOptions={{
-            buster: 'feishin',
+            // Bump when persisted query data changes shape: v2 = lyrics resolved by the 032
+            // server (older results kept online lyrics in fields the client no longer reads).
+            buster: 'feishin-lyrics-v2',
             dehydrateOptions: {
                 shouldDehydrateQuery: (query) => {
                     const isSuccess = query.state.status === 'success';
