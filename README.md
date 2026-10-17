@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/lux032/032musicplayer?style=flat-square&color=brightgreen" alt="License">
+    <img src="https://img.shields.io/github/license/lux032/032musicplayer?style=flat-square&color=brightgreen&cacheSeconds=3600" alt="License">
   </a>
   <a href="https://github.com/lux032/032musicplayer/releases">
-    <img src="https://img.shields.io/github/v/release/lux032/032musicplayer?style=flat-square&color=blue" alt="Release">
+    <img src="https://img.shields.io/github/v/release/lux032/032musicplayer?style=flat-square&color=blue&cacheSeconds=3600" alt="Release">
   </a>
   <a href="https://github.com/lux032/032musicplayer/releases">
-    <img src="https://img.shields.io/github/downloads/lux032/032musicplayer/total?style=flat-square&color=orange" alt="Downloads">
+    <img src="https://img.shields.io/github/downloads/lux032/032musicplayer/total?style=flat-square&color=orange&cacheSeconds=3600" alt="Downloads">
   </a>
 </p>
 
