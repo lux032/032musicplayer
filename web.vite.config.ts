@@ -114,7 +114,7 @@ export default defineConfig({
                         type: 'image/png',
                     },
                 ],
-                name: 'Feishin',
+                name: '032musicplayer',
                 orientation: 'portrait',
                 screenshots: [
                     {
@@ -125,7 +125,7 @@ export default defineConfig({
                         type: 'image/webp',
                     },
                 ],
-                short_name: 'Feishin',
+                short_name: '032musicplayer',
                 start_url: '/',
                 theme_color: '#1E003D',
             },
