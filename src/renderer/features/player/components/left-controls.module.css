@@ -114,6 +114,9 @@
     p {
         display: inline;
         color: var(--theme-colors-primary);
+
+        /* Mantine Text sets text-wrap: wrap, which beats the inherited nowrap */
+        white-space: nowrap;
     }
 }
 

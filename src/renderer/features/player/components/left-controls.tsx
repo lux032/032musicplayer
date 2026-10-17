@@ -263,7 +263,12 @@ export const LeftControls = () => {
                                 {audioQuality && (
                                     <span className={styles.audioQuality}>{audioQuality}</span>
                                 )}
-                                <div className={styles.subText}>
+                                <div
+                                    className={styles.subText}
+                                    title={[currentSong?.artistName, currentSong?.album]
+                                        .filter(Boolean)
+                                        .join(' · ')}
+                                >
                                     <span className={PlaybackSelectors.songArtist}>
                                         <JoinedArtists
                                             artistName={currentSong?.artistName || ''}
