@@ -1,4 +1,4 @@
-<img src="assets/icons/icon.png" alt="logo" title="feishin" align="right" height="60px" width="60px" />
+<img src="assets/icons/256x256.png" alt="032musicplayer logo" title="032musicplayer" align="right" height="96px" width="96px" />
 
 # 032musicplayer
 
