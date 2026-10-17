@@ -180,7 +180,7 @@ export default class MenuBuilder {
             submenu: [
                 {
                     click: this.showMainWindow,
-                    label: 'Show Feishin',
+                    label: 'Show 032musicplayer',
                 },
             ],
         };
@@ -309,35 +309,32 @@ export default class MenuBuilder {
             submenu: [
                 {
                     click() {
-                        shell.openExternal('https://github.com/jeffvli/feishin');
+                        shell.openExternal('https://github.com/lux032/032musicplayer');
                     },
                     label: 'Learn More',
                 },
                 {
                     click() {
-                        shell.openExternal(
-                            'https://github.com/jeffvli/feishin?tab=readme-ov-file#getting-started',
-                        );
+                        shell.openExternal('https://github.com/lux032/032musicplayer#readme');
                     },
                     label: 'Documentation',
                 },
                 {
                     click() {
-                        shell.openExternal('https://github.com/jeffvli/feishin/discussions');
+                        shell.openExternal('https://github.com/lux032/032musicplayer/discussions');
                     },
                     label: 'Community Discussions',
                 },
                 {
                     click() {
-                        shell.openExternal('https://github.com/jeffvli/feishin/issues');
+                        shell.openExternal('https://github.com/lux032/032musicplayer/issues');
                     },
                     label: 'Search Issues',
                 },
                 { type: 'separator' },
                 {
-                    click: () => {
-                        this.mainWindow.webContents.send('renderer-open-release-notes');
-                    },
+                    // 032musicplayer: release notes modal is hidden, version is display-only.
+                    enabled: false,
                     label: 'Version ' + packageJson.version,
                 },
             ],
@@ -426,27 +423,27 @@ export default class MenuBuilder {
                 submenu: [
                     {
                         click() {
-                            shell.openExternal('https://github.com/jeffvli/feishin');
+                            shell.openExternal('https://github.com/lux032/032musicplayer');
                         },
                         label: 'Learn More',
                     },
                     {
                         click() {
-                            shell.openExternal(
-                                'https://github.com/jeffvli/feishin?tab=readme-ov-file#getting-started',
-                            );
+                            shell.openExternal('https://github.com/lux032/032musicplayer#readme');
                         },
                         label: 'Documentation',
                     },
                     {
                         click() {
-                            shell.openExternal('https://github.com/jeffvli/feishin/discussions');
+                            shell.openExternal(
+                                'https://github.com/lux032/032musicplayer/discussions',
+                            );
                         },
                         label: 'Community Discussions',
                     },
                     {
                         click() {
-                            shell.openExternal('https://github.com/jeffvli/feishin/issues');
+                            shell.openExternal('https://github.com/lux032/032musicplayer/issues');
                         },
                         label: 'Search Issues',
                     },

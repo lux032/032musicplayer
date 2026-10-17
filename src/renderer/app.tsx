@@ -7,11 +7,12 @@ import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import '@mantine/notifications/styles.css';
 import isElectron from 'is-electron';
-import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 import i18n from '/@/i18n/i18n';
 import { WebAudioContext } from '/@/renderer/features/player/context/webaudio-context';
-import { useCheckForUpdates } from '/@/renderer/hooks/use-check-for-updates';
+// 032musicplayer: update check and release notes are hidden.
+// import { useCheckForUpdates } from '/@/renderer/hooks/use-check-for-updates';
 import { useFullscreenAutoOpen } from '/@/renderer/hooks/use-fullscreen-auto-open';
 import { useFullscreenToggle } from '/@/renderer/hooks/use-fullscreen-toggle';
 import { useNativeMenuSync } from '/@/renderer/hooks/use-native-menu-sync';
@@ -30,13 +31,13 @@ import { WebAudio } from '/@/shared/types/types';
 import '/@/shared/styles/global.css';
 import { PlayerProvider } from '/@/renderer/features/player/context/player-context';
 import { AudioPlayers } from '/@/renderer/features/player/components/audio-players';
-import { ReleaseNotesModal } from '/@/renderer/release-notes-modal';
+// import { ReleaseNotesModal } from '/@/renderer/release-notes-modal';
 
-const UpdateAvailableDialog = lazy(() =>
-    import('./update-available-dialog').then((module) => ({
-        default: module.UpdateAvailableDialog,
-    })),
-);
+// const UpdateAvailableDialog = lazy(() =>
+//     import('./update-available-dialog').then((module) => ({
+//         default: module.UpdateAvailableDialog,
+//     })),
+// );
 
 const ipc = isElectron() ? window.api.ipc : null;
 const utils = isElectron() ? window.api.utils : null;
@@ -103,10 +104,12 @@ const AppShell = memo(function AppShell() {
                     <AppRouter />
                 </PlayerProvider>
             </WebAudioContext.Provider>
+            {/* 032musicplayer: release notes and update dialog are hidden.
             <ReleaseNotesModal />
             <Suspense fallback={null}>
                 <UpdateAvailableDialog />
             </Suspense>
+            */}
         </>
     );
 });
@@ -133,7 +136,7 @@ const SyncSettingsEffect = () => {
 };
 
 const UpdateCheckEffect = () => {
-    useCheckForUpdates();
+    // useCheckForUpdates();
 
     return null;
 };

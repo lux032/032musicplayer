@@ -15,7 +15,7 @@ export const UpdateAvailableButton = () => {
     return (
         <Button
             component="a"
-            href={`https://github.com/jeffvli/feishin/releases/tag/${toTag(latestVersion || currentVersion)}`}
+            href={`https://github.com/lux032/032musicplayer/releases/tag/${toTag(latestVersion || currentVersion)}`}
             size="compact-sm"
             target="_blank"
             variant="filled"

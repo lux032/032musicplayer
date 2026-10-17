@@ -8,7 +8,6 @@ import styles from './app-menu.module.css';
 import { UpdateAvailableButton } from '/@/renderer/features/settings/components/update-available-button';
 import { openSettingsModal } from '/@/renderer/features/settings/utils/open-settings-modal';
 import { ServerSelector } from '/@/renderer/features/sidebar/components/server-selector';
-import { openReleaseNotesModal } from '/@/renderer/release-notes-modal';
 import {
     useAppStore,
     useAppStoreActions,
@@ -250,10 +249,8 @@ export const AppMenu = () => {
             icon: 'brandGitHub',
             id: 'version',
             label: t('page.appMenu.version', { version: currentVersion }),
-            onClick: () =>
-                openReleaseNotesModal(
-                    t('common.newVersion', { version: currentVersion }) as string,
-                ),
+            // 032musicplayer: release notes modal is hidden, open the repository instead.
+            onClick: () => window.open('https://github.com/lux032/032musicplayer', '_blank'),
             type: 'item',
         },
         {
