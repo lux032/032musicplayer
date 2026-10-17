@@ -1,18 +1,18 @@
-# Contributing to Feishin
+# Contributing to 032musicplayer
 
 Thanks for your interest in contributing!
 
-Check the existing [issues](https://github.com/jeffvli/feishin/issues).
+Check the existing [issues](https://github.com/lux032/032musicplayer/issues).
 
 ## IMPORTANT
 
-For feature contributions that do not have an existing feature request, please open an issue, discussion, or ask [Feishin discord server](https://discord.gg/FVKpcMDy5f) **BEFORE** beginning to implement it to determine whether or not the feature would be acceptable for the app. Simply submitting a large feature with thousands of new or changed lines of code without asking if the feature is desired for the application will run the risk of instant closure.
+For feature contributions that do not have an existing feature request, please open an issue or discussion **BEFORE** beginning to implement it to determine whether or not the feature would be acceptable for the app. Simply submitting a large feature with thousands of new or changed lines of code without asking if the feature is desired for the application will run the risk of instant closure.
 
 Bug fixes are likely to be accepted without discussion.
 
 ## Development environment
 
-Feishin is built and tested with Node.js `v23.11.0` and pnpm `11.5.2`. Newer versions of Node.js are also supported.
+032musicplayer is built and tested with Node.js `v23.11.0` and pnpm `11.5.2`. Newer versions of Node.js are also supported.
 
 Useful development commands include:
 
@@ -42,4 +42,4 @@ Please include:
 
 ## Translations
 
-Translations are managed through [Weblate](https://hosted.weblate.org/projects/feishin/). You only need to include translation strings for the `en.json` file. Do not manually update the other language files as these are handled directly by volunteer translators.
+Translations: include new strings in `en.json` (and `zh-Hans.json` where possible). Other language files are inherited from Feishin and may be incomplete.
