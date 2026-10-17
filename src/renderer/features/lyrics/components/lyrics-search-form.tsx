@@ -55,7 +55,8 @@ const SearchResult = ({ data, isSelected, onClick }: SearchResultProps) => {
     const { artist, id, isSync, name, score, source } = data;
 
     const percentageScore = useMemo(() => {
-        if (!score) return 0;
+        // 0 is a perfect match (100%); only a missing score shows 0.
+        if (score == null) return 0;
         return ((1 - score) * 100).toFixed(2);
     }, [score]);
 
@@ -224,23 +225,27 @@ export const LyricsSearchForm = ({ artist, name, onSearchOverride }: LyricSearch
                             paddingRight: '1rem',
                         }}
                     >
-                        {isLoading ? (
-                            <Spinner container />
-                        ) : (
-                            <Stack gap="md">
-                                {searchResults.map((result) => (
-                                    <SearchResult
-                                        data={result}
-                                        isSelected={
-                                            selectedResult?.id === result.id &&
-                                            selectedResult?.source === result.source
-                                        }
-                                        key={`${result.source}-${result.id}`}
-                                        onClick={() => setSelectedResult(result)}
-                                    />
-                                ))}
-                            </Stack>
-                        )}
+                        {/* Stable child: OverlayScrollbars moves the ScrollArea's direct children into its
+                            viewport, so swapping them (spinner -> results) crashes React's removeChild. */}
+                        <div>
+                            {isLoading ? (
+                                <Spinner container />
+                            ) : (
+                                <Stack gap="md">
+                                    {searchResults.map((result) => (
+                                        <SearchResult
+                                            data={result}
+                                            isSelected={
+                                                selectedResult?.id === result.id &&
+                                                selectedResult?.source === result.source
+                                            }
+                                            key={`${result.source}-${result.id}`}
+                                            onClick={() => setSelectedResult(result)}
+                                        />
+                                    ))}
+                                </Stack>
+                            )}
+                        </div>
                     </ScrollArea>
                 </Stack>
                 {selectedResult && (
@@ -251,23 +256,38 @@ export const LyricsSearchForm = ({ artist, name, onSearchOverride }: LyricSearch
                                 paddingRight: '1rem',
                             }}
                         >
-                            {isPreviewLoading ? (
-                                <Spinner container />
-                            ) : previewData ? (
-                                Array.isArray(previewData) ? (
-                                    lyricsHasWordCues(previewData) ? (
-                                        <SynchronizedKaraokeLyrics
-                                            preview
-                                            {...({
-                                                artist: selectedResult.artist,
-                                                lyrics: previewData,
-                                                name: selectedResult.name,
-                                                remote: true,
-                                                source: selectedResult.source,
-                                            } as SynchronizedLyricsProps)}
-                                        />
+                            {/* Stable child: OverlayScrollbars moves the ScrollArea's direct children into its
+                                viewport, so swapping them (spinner -> results) crashes React's removeChild. */}
+                            <div>
+                                {isPreviewLoading ? (
+                                    <Spinner container />
+                                ) : previewData ? (
+                                    Array.isArray(previewData) ? (
+                                        lyricsHasWordCues(previewData) ? (
+                                            <SynchronizedKaraokeLyrics
+                                                preview
+                                                {...({
+                                                    artist: selectedResult.artist,
+                                                    lyrics: previewData,
+                                                    name: selectedResult.name,
+                                                    remote: true,
+                                                    source: selectedResult.source,
+                                                } as SynchronizedLyricsProps)}
+                                            />
+                                        ) : (
+                                            <SynchronizedLyrics
+                                                preview
+                                                {...({
+                                                    artist: selectedResult.artist,
+                                                    lyrics: previewData,
+                                                    name: selectedResult.name,
+                                                    remote: true,
+                                                    source: selectedResult.source,
+                                                } as SynchronizedLyricsProps)}
+                                            />
+                                        )
                                     ) : (
-                                        <SynchronizedLyrics
+                                        <UnsynchronizedLyrics
                                             preview
                                             {...({
                                                 artist: selectedResult.artist,
@@ -275,26 +295,15 @@ export const LyricsSearchForm = ({ artist, name, onSearchOverride }: LyricSearch
                                                 name: selectedResult.name,
                                                 remote: true,
                                                 source: selectedResult.source,
-                                            } as SynchronizedLyricsProps)}
+                                            } as UnsynchronizedLyricsProps)}
                                         />
                                     )
                                 ) : (
-                                    <UnsynchronizedLyrics
-                                        preview
-                                        {...({
-                                            artist: selectedResult.artist,
-                                            lyrics: previewData,
-                                            name: selectedResult.name,
-                                            remote: true,
-                                            source: selectedResult.source,
-                                        } as UnsynchronizedLyricsProps)}
-                                    />
-                                )
-                            ) : (
-                                <Center>
-                                    <Text isMuted>{t('page.fullscreenPlayer.noLyrics')}</Text>
-                                </Center>
-                            )}
+                                    <Center>
+                                        <Text isMuted>{t('page.fullscreenPlayer.noLyrics')}</Text>
+                                    </Center>
+                                )}
+                            </div>
                         </ScrollArea>
                     </Stack>
                 )}

@@ -210,6 +210,8 @@ const requireServer = (serverId: string) => {
     return server;
 };
 
+const NO_LYRICS_STALE_MS = 30 * 1000;
+
 export const lyricsQueries = {
     search: (args: QueryHookArgs<LyricSearchQuery>) => {
         return queryOptions({
@@ -264,7 +266,11 @@ export const lyricsQueries = {
                 };
             },
             queryKey: lyricsKey,
-            staleTime: Infinity,
+            // Found lyrics only change through this client (pick / clear invalidate them).
+            // "No lyrics" can be filled in later by the server (an online lookup that
+            // failed transiently, a pick on another device), so ask again on the next
+            // visit instead of keeping the empty result for the whole session.
+            staleTime: (query) => (query.state.data?.selected ? Infinity : NO_LYRICS_STALE_MS),
             ...args.options,
         });
     },
