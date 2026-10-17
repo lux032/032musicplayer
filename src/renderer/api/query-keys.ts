@@ -249,6 +249,11 @@ export const queryKeys: Record<
         },
         root: (serverId: string) => [serverId, 'artists'] as const,
     },
+    dailyMixes: {
+        detail: (serverId: string, id: number) => [serverId, 'dailyMixes', 'detail', id] as const,
+        list: (serverId: string) => [serverId, 'dailyMixes', 'list'] as const,
+        root: (serverId: string) => [serverId, 'dailyMixes'] as const,
+    },
     folders: {
         folder: (serverId: string, query?: FolderQuery) => {
             if (query) {

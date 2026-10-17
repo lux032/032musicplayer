@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Music032ApiError } from '/@/renderer/api/music032/music032-api';
 import { NativeScrollArea } from '/@/renderer/components/native-scroll-area/native-scroll-area';
+import { dailyMixQueries } from '/@/renderer/features/daily-mix/api/daily-mix-api';
+import { HomeDailyMixes } from '/@/renderer/features/daily-mix/components/home-daily-mixes';
 import { music032HomeQueries } from '/@/renderer/features/home/music032/api/music032-home-api';
 import { HomeChronicle } from '/@/renderer/features/home/music032/components/home-chronicle';
 import { HomeFirstRun } from '/@/renderer/features/home/music032/components/home-first-run';
@@ -23,6 +25,7 @@ import styles from '/@/renderer/features/home/music032/music032-home.module.css'
 import { AnimatedPage } from '/@/renderer/features/shared/components/animated-page';
 import { LibraryContainer } from '/@/renderer/features/shared/components/library-container';
 import { LibraryHeaderBar } from '/@/renderer/features/shared/components/library-header-bar';
+import { useMusic032DailyMixesSupported } from '/@/renderer/features/shared/hooks/use-music032-capabilities';
 import { useCurrentServerWithCredential, useWindowSettings } from '/@/renderer/store';
 import { Skeleton } from '/@/shared/components/skeleton/skeleton';
 import { Platform } from '/@/shared/types/types';
@@ -39,6 +42,11 @@ const Music032HomeSkeleton = () => (
     </>
 );
 
+/** Left duo column height in rows (web homeColumnRows); 最近播放 keeps at least 2. */
+const COLUMN_ROWS = 7;
+const MIN_RECENT_ROWS = 2;
+const NO_EXCLUDES: number[] = [];
+
 /**
  * 032 主页。后端没有主页接口时（404）回退到 feishin 默认主页（fallback）。
  */
@@ -54,6 +62,19 @@ export const Music032HomeRoute = ({ fallback }: { fallback: ReactNode }) => {
             : { enabled: false, queryKey: ['noop'] as const }),
         enabled: Boolean(server),
     });
+
+    // 今日推荐（能力位 features.dailyMixes）。有歌单时它占掉接着听的位置，
+    // 最近播放缩到 max(2, 7 - 歌单数) 行，左栏总高度与网页一致。
+    const dailyMixesSupported = useMusic032DailyMixesSupported();
+    const mixesQuery = useQuery({
+        ...(server && dailyMixesSupported
+            ? dailyMixQueries.list(server)
+            : { enabled: false, queryKey: ['noop'] as const }),
+        enabled: Boolean(server) && dailyMixesSupported,
+    });
+    const mixes = mixesQuery.data?.items ?? [];
+    const mixesGenerating = mixesQuery.data?.status === 'generating';
+    const showMixes = mixes.length > 0;
 
     // 后端还没有主页接口：回退到 feishin 默认主页。
     if (
@@ -100,12 +121,30 @@ export const Music032HomeRoute = ({ fallback }: { fallback: ReactNode }) => {
                                 {data.spotlight && <HomeSpotlight spotlight={data.spotlight} />}
                                 <div className={styles.duo}>
                                     <div className={styles.duoMain}>
-                                        <HomeRecentPlayed
-                                            excludeTrackIds={data.resume
-                                                .slice(0, RESUME_VISIBLE_COUNT)
-                                                .map((r) => r.trackId)}
-                                        />
-                                        <HomeResume records={data.resume} />
+                                        {(showMixes || mixesGenerating) && (
+                                            <HomeDailyMixes
+                                                generating={mixesGenerating}
+                                                mixes={mixes}
+                                            />
+                                        )}
+                                        {showMixes ? (
+                                            <HomeRecentPlayed
+                                                count={Math.max(
+                                                    MIN_RECENT_ROWS,
+                                                    COLUMN_ROWS - mixes.length,
+                                                )}
+                                                excludeTrackIds={NO_EXCLUDES}
+                                            />
+                                        ) : (
+                                            <>
+                                                <HomeRecentPlayed
+                                                    excludeTrackIds={data.resume
+                                                        .slice(0, RESUME_VISIBLE_COUNT)
+                                                        .map((r) => r.trackId)}
+                                                />
+                                                <HomeResume records={data.resume} />
+                                            </>
+                                        )}
                                     </div>
                                     {data.recentAlbums.length > 0 && (
                                         <HomeRecentAlbums albums={data.recentAlbums} />

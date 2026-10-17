@@ -30,9 +30,16 @@ export type KeyValueStorage = {
     setItem: (key: string, value: string) => void;
 };
 
+/**
+ * Where a play came from (capability features.playbackContext). Sent on a
+ * fresh start only; a resumed chain inherits it server-side.
+ */
+export type PlaybackContext = { id: number; position: number; type: 'dailyMix' };
+
 export type PlaybackEventBody = {
     clientId: string;
     clientKind: string;
+    context?: PlaybackContext;
     durationMillis: number;
     endReason?: EndReason;
     positionMillis: number;
@@ -63,6 +70,7 @@ export type PlaybackSessionOptions = {
 export type PlaybackState = 'buffering' | 'paused' | 'playing';
 
 export type PlayOptions = {
+    context?: null | PlaybackContext;
     durationMillis?: number;
     initialState?: PlaybackState;
     positionMillis?: number;
@@ -103,6 +111,7 @@ type JobExtra = {
 };
 
 type Session = {
+    context: null | PlaybackContext;
     endDelivered: boolean;
     ended: boolean;
     endGivenUp: boolean;
@@ -117,6 +126,16 @@ type Session = {
 };
 
 const CLIENT_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
+
+export const normalizePlaybackContext = (context: unknown): null | PlaybackContext => {
+    const c = context as null | Partial<PlaybackContext> | undefined;
+    if (!c || c.type !== 'dailyMix') return null;
+    const id = Number(c.id);
+    const position = Number(c.position);
+    if (!Number.isInteger(id) || id <= 0) return null;
+    if (!Number.isInteger(position) || position < 0 || position > 999) return null;
+    return { id, position, type: 'dailyMix' };
+};
 
 export const createPlaybackSession = (options: PlaybackSessionOptions) => {
     const transport = options.transport;
@@ -241,6 +260,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
     const newSession = (trackId: number, state?: PlaybackState): Session => {
         const initialState = state || 'buffering';
         return {
+            context: null,
             endDelivered: false,
             ended: false,
             endGivenUp: false,
@@ -336,6 +356,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
         if (job.type === 'start') {
             body.state = job.state!;
             if (job.resumeFrom) body.resumedFromSessionId = job.resumeFrom;
+            else if (sess.context) body.context = sess.context;
         } else if (job.type === 'heartbeat') {
             body.state = sess.state;
         } else if (job.type === 'end') {
@@ -434,6 +455,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
                 pastCountThreshold(job.positionMillis, job.durationMillis)
             ) {
                 const recovery = newSession(sess.trackId, 'playing');
+                recovery.context = sess.context;
                 const startJob = makeJob(recovery, 'start', {
                     durationMillis: job.durationMillis,
                     positionMillis: job.positionMillis,
@@ -466,6 +488,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
         if (isEnd) sess.endDelivered = true;
         const recovery = newSession(sess.trackId, sess.state);
         recovery.hasPlayed = sess.hasPlayed;
+        recovery.context = sess.context;
         const depth = job.recoveryDepth + 1;
         const startJob = makeJob(recovery, 'start', {
             durationMillis: job.durationMillis > 0 ? job.durationMillis : undefined,
@@ -604,6 +627,7 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
                 endSession(previous, opts.reason || 'replaced');
             }
             session = newSession(trackId, opts.initialState || 'buffering');
+            session.context = normalizePlaybackContext(opts.context);
             enqueue(session, 'start', {
                 durationMillis: opts.durationMillis,
                 positionMillis: opts.positionMillis,
@@ -631,6 +655,8 @@ export const createPlaybackSession = (options: PlaybackSessionOptions) => {
             const resumeFrom = snapshot && snapshot.trackId === trackId ? snapshot.sessionId : null;
             session = newSession(trackId, opts.initialState || 'paused');
             if (resumeFrom && snapshot!.hasPlayed) session.hasPlayed = true;
+            // A resumed chain keeps its context server-side; a fresh chain carries the queue's.
+            if (!resumeFrom) session.context = normalizePlaybackContext(opts.context);
             enqueue(session, 'start', {
                 durationMillis: opts.durationMillis,
                 positionMillis: opts.positionMillis,

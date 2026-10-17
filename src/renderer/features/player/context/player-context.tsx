@@ -172,6 +172,16 @@ const inferPlaylistContextFromUrl = (): null | string => {
 const tagPlaylistContext = (songs: Song[], contextPlaylistId: string): Song[] =>
     songs.map((song) => ({ ...song, _contextPlaylistId: contextPlaylistId }));
 
+// A daily mix only counts plays from its own queue: songs inserted into another
+// queue (play next / add to queue) drop their 032 daily mix attribution.
+const withoutDailyMixContext = (songs: Song[]): Song[] =>
+    songs.map((song) => {
+        if (!song._dailyMixContext) return song;
+        const copy = { ...song };
+        delete copy._dailyMixContext;
+        return copy;
+    });
+
 export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
@@ -274,6 +284,7 @@ export const PlayerProvider = ({ children }: { children: React.ReactNode }) => {
         ) => {
             const filters = useSettingsStore.getState().playback.filters;
             let filteredData = filterSongsByPlayerFilters(data, filters);
+            if (!isReplaceQueueType(type)) filteredData = withoutDailyMixContext(filteredData);
             const resolvedContextId =
                 contextPlaylistId ??
                 (isReplaceQueueType(type) ? inferPlaylistContextFromUrl() : null);

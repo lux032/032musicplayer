@@ -413,6 +413,12 @@ export type RelatedArtist = {
 };
 
 export type Song = {
+    /**
+     * 032 only: the daily mix this queue entry was played from (mix id, 0-based
+     * position). Reported on a fresh playback session start; set only when the
+     * server advertises features.playbackContext and only on queue-replacing plays.
+     */
+    _dailyMixContext?: { id: number; position: number };
     _itemType: LibraryItem.SONG;
     _serverId: string;
     _serverType: ServerType;

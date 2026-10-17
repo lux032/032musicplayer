@@ -24,13 +24,19 @@ import { m032Normalize } from '/@/shared/api/music032/music032-normalize';
 import { Icon } from '/@/shared/components/icon/icon';
 import { LibraryItem, Song } from '/@/shared/types/domain-types';
 
-const RECENT_PLAYED_COUNT = 5;
+export const RECENT_PLAYED_COUNT = 5;
 
 /**
- * 最近播放：最近播放过的 5 首（不含下方接着听已列出的曲目），不显示进度。
+ * 最近播放：最近播放过的 `count` 首（默认 5，不含下方接着听已列出的曲目），不显示进度。
  * 数据来自 /tracks?sort=recentlyPlayed，从未播放的曲目排在末尾，这里过滤掉。
  */
-export const HomeRecentPlayed = ({ excludeTrackIds }: { excludeTrackIds: number[] }) => {
+export const HomeRecentPlayed = ({
+    count = RECENT_PLAYED_COUNT,
+    excludeTrackIds,
+}: {
+    count?: number;
+    excludeTrackIds: number[];
+}) => {
     const { t } = useTranslation();
     const server = useCurrentServerWithCredential();
     const { playSongs } = useMusic032HomePlay();
@@ -47,9 +53,9 @@ export const HomeRecentPlayed = ({ excludeTrackIds }: { excludeTrackIds: number[
         const exclude = new Set(excludeTrackIds);
         return (query.data?.items ?? [])
             .filter((track) => track.lastPlayedAt && !exclude.has(track.id))
-            .slice(0, RECENT_PLAYED_COUNT)
+            .slice(0, count)
             .map((track) => m032Normalize.song(ctx, track));
-    }, [excludeTrackIds, query.data, server]);
+    }, [count, excludeTrackIds, query.data, server]);
 
     return (
         <HomeSection

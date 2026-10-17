@@ -22,7 +22,7 @@
 //  - seeking (including "previous" restarting the track) stays in the same
 //    session and never counts a new play.
 
-import type { EndReason, PlaybackSession } from './music032-playback-session';
+import type { EndReason, PlaybackContext, PlaybackSession } from './music032-playback-session';
 
 export type AdapterOptions = {
     now: () => number;
@@ -32,6 +32,8 @@ export type AdapterOptions = {
 export type AdapterStatus = 'paused' | 'playing' | 'stopped';
 
 export type AdapterTrack = {
+    /** Daily mix attribution of this queue item (only set when the server supports it). */
+    context?: null | PlaybackContext;
     durationMillis: number;
     /** 032 track id. */
     trackId: number;
@@ -86,6 +88,7 @@ export const createMusic032PlaybackAdapter = ({ now, session }: AdapterOptions) 
     const startCurrent = () => {
         if (!current) return;
         const opts = {
+            context: current.context ?? null,
             durationMillis: current.durationMillis,
             initialState: buffering ? ('buffering' as const) : ('playing' as const),
             positionMillis: lastPositionMs,

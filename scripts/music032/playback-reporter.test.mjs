@@ -458,4 +458,41 @@ describe('032 playback reporting', () => {
         });
         assert.deepEqual(types(h.sent), ['start:1', 'end:1', 'start:2']);
     });
+
+    test('daily mix context rides on fresh starts only; resumed chains inherit it server-side', async () => {
+        const MIX_A = { ...A, context: { id: 7, position: 0, type: 'dailyMix' } };
+        const MIX_B = { ...B, context: { id: 7, position: 1, type: 'dailyMix' } };
+        const h = createHarness();
+        await playTo(h, MIX_A, 50);
+        // Playback failure, then a retry of the same track resumes the chain.
+        h.adapter.onError();
+        await h.session.idle();
+        await h.act((a) => a.onStatus('paused'));
+        await h.act((a) => a.onStatus('playing'));
+        await h.act((a) => {
+            a.onProgress(0);
+            a.onTrackChange(MIX_B);
+            a.onUserNavigate();
+        });
+        await h.act((a) => {
+            a.onProgress(0);
+            a.onTrackChange(A);
+            a.onUserNavigate();
+        });
+
+        const starts = h.sent.filter((e) => e.type === 'start');
+        assert.deepEqual(starts[0].context, { id: 7, position: 0, type: 'dailyMix' });
+        assert.equal(starts[1].resumedFromSessionId, starts[0].sessionId);
+        assert.equal(starts[1].context, undefined);
+        assert.deepEqual(starts[2].context, { id: 7, position: 1, type: 'dailyMix' });
+        assert.equal(starts[3].context, undefined);
+        assert.ok(h.sent.filter((e) => e.type !== 'start').every((e) => e.context === undefined));
+    });
+
+    test('an invalid daily mix context is dropped instead of failing the start', async () => {
+        const h = createHarness();
+        await playTo(h, { ...A, context: { id: 0, position: 3, type: 'dailyMix' } }, 1);
+        assert.equal(h.sent[0].type, 'start');
+        assert.equal(h.sent[0].context, undefined);
+    });
 });

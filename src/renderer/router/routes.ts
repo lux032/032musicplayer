@@ -1,5 +1,6 @@
 export enum AppRoute {
     ACTION_REQUIRED = '/action-required',
+    DAILY_MIX_DETAIL = '/daily-mixes/:mixId',
     EXPLORE = '/explore',
     FAKE_LIBRARY_ALBUM_DETAILS = '/library/albums/dummy/:albumId',
     FAVORITES = '/favorites',

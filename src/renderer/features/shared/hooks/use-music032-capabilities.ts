@@ -8,7 +8,7 @@ import { ServerListItemWithCredential, ServerType } from '/@/shared/types/domain
 
 const STALE_TIME = 1000 * 60 * 5;
 
-const capabilitiesQuery = (server: ServerListItemWithCredential) =>
+export const capabilitiesQuery = (server: ServerListItemWithCredential) =>
     queryOptions({
         queryFn: ({ signal }) =>
             m032ApiClient({ server, signal }).get<M032Capabilities>('/capabilities'),
@@ -37,4 +37,13 @@ export const useMusic032SeriesSupported = (): boolean => {
     const query = useMusic032Capabilities();
     if (!query.data) return true;
     return Boolean(query.data.features?.series);
+};
+
+/**
+ * 每日推荐是否可用（能力位 features.dailyMixes）。能力位未加载时按不可用处理，
+ * 主页不为旧服务端发多余请求。
+ */
+export const useMusic032DailyMixesSupported = (): boolean => {
+    const query = useMusic032Capabilities();
+    return Boolean(query.data?.features?.dailyMixes);
 };

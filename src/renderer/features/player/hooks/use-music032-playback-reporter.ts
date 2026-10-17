@@ -91,7 +91,13 @@ const toTrack = (song: QueueSong | undefined): AdapterTrack | null => {
     if (!song || song._serverType !== ServerType.MUSIC032) return null;
     const trackId = Number(song.id);
     if (!Number.isInteger(trackId) || trackId <= 0) return null;
-    return { durationMillis: song.duration || 0, trackId, uniqueId: song._uniqueId };
+    const mix = song._dailyMixContext;
+    return {
+        context: mix ? { id: mix.id, position: mix.position, type: 'dailyMix' } : null,
+        durationMillis: song.duration || 0,
+        trackId,
+        uniqueId: song._uniqueId,
+    };
 };
 
 const toStatus = (status: PlayerStatus): AdapterStatus =>

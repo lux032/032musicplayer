@@ -30,6 +30,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 | `src/renderer/features/shared/components/music032-route-guard.tsx` | 作品 / 系列路由守卫：非 MUSIC032 服务端访问时重定向主页 |
 | `src/renderer/features/shared/hooks/use-music032-capabilities.ts` | `/capabilities` 查询与 `useMusic032SeriesSupported`（系列能力位） |
 | `src/renderer/features/playback-history/` | 客户端内播放记录页（`/library/playback-history`）：`GET /api/v1/playback/history` 无限滚动，行内进度、播放状态、次数、位置、最近播放时间；「清空播放历史」走 `DELETE /api/v1/playback/history`（确认弹窗，成功后失效主页查询） |
+| `src/renderer/features/daily-mix/` | 每日推荐（对照网页 `daily-mix.html` / 主页「今日推荐」）：`api/daily-mix-api.ts`（列表 / 详情查询，生成中每 5 秒轮询，评价、换一个、另存为歌单、不再推荐）、`lib/use-daily-mix-play.ts`（播放 / 随机 / 从某首开始时给曲目打上 `_dailyMixContext`，只在能力位 `features.playbackContext` 为真时打；加入队列不打）、`components/`（封面拼图、歌单行、主页区块）、`routes/daily-mix-detail-route.tsx`（`/daily-mixes/:mixId`：曲目列表 + 新发现 + 不再推荐，右栏评价 / 不喜欢原因 / 换一个 / 另存为歌单 / 今天的其他推荐） |
 | `src/renderer/features/shared/hooks/use-music032-sidebar-items.ts` | 侧边栏注入项（作品 / 系列 / 播放记录，仅 MUSIC032，不进持久化设置；系列接口缺失时系列入口打开网页） |
 | `src/renderer/features/radio/hooks/use-radio-supported.ts` | 电台能力判定：只有 MUSIC032 按 INTERNET_RADIO 能力位隐藏，其他类型行为不变 |
 | `src/renderer/features/radio/components/radio-route-guard.tsx` | `/radio` 直接访问在无电台能力时重定向主页 |
@@ -57,6 +58,14 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 ### `src/renderer/api/controller.ts`
 - 分发表加 `music032: Music032Controller`。
 
+### 每日推荐与播放上下文
+- `domain-types.ts`：`Song` 加可选 `_dailyMixContext`（歌单 id + 0 起的序号）。
+- `player-context.tsx`：`addToQueueByData` 非替换队列的方式（下一首 / 加到末尾）去掉 `_dailyMixContext`，只有从歌单自己的队列播放才算这个歌单的播放（服务端设计 §7.1）。
+- `player.store.ts`：`updateQueueSong`（收藏等刷新曲目）保留 `_dailyMixContext`。
+- `music032-playback-session.ts`：会话带 `context`，只在全新 start 上发送；续播（`resumedFromSessionId`）由服务端继承，不重复发送；会话恢复时沿用。`music032-playback-adapter.ts` 的 `AdapterTrack.context` 由上报 hook 从队列曲目取。
+- 032 主页（`music032-home-route.tsx`）：能力位 `features.dailyMixes` 为真时在左栏顶部显示「今日推荐」；有歌单时不显示接着听，最近播放缩到 max(2, 7 − 歌单数) 行（与网页一致）；生成中显示提示并轮询。
+- `icon.tsx` 新增 `thumbsUp` / `thumbsDown`；`routes.ts` 新增 `DAILY_MIX_DETAIL`；`query-keys.ts` 新增 `dailyMixes`。
+
 ### `src/renderer/features/home/routes/home-route.tsx`
 - 032 主页分流：原 `HomeRoute` 主体原样改名为 `DefaultHomeContent`，新的 `HomeRoute`
   只做分流：服务端类型是 `MUSIC032` 时渲染 `<Music032HomeRoute fallback={<DefaultHomeContent />} />`，
@@ -68,6 +77,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - 追加 `music032`（`capabilities`）、`works`（`list` / `detail` / `albums` / `tracks` / `root`）、
   `series`（同名）命名空间，供作品页、系列页和能力位查询使用。
 - 追加 `home.recentPlayed`（主页最近播放）和 `playbackHistory`（`list` / `root`，播放记录页）。
+- 追加 `dailyMixes`（`list` / `detail` / `root`，每日推荐）。
 
 ### `src/renderer/router/routes.ts`、`src/renderer/router/app-router.tsx`
 - `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL` /
@@ -121,6 +131,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - 新增 `error.music032*`（5 个）和 `form.addServer.input_music032*`（5 个）。
 - 新增 `page.home.music032*`（032 主页全部文案，含页签、区块标题、用途角色短标签、
   空库引导、页脚统计）。
+- 新增 `page.dailyMix.*`（每日推荐主页区块和详情页文案）。
 
 ### 播放上报接线
 - `src/renderer/features/player/components/audio-players.tsx`：在 `<ScrobbleHook />` 后挂载 `<Music032PlaybackReporterHook />`。

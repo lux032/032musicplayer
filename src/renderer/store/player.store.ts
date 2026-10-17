@@ -2190,6 +2190,7 @@ export const updateQueueSong = (songId: string, updatedSong: Song) => {
                 state.queue.songs[song._uniqueId] = {
                     ...updatedSong,
                     _contextPlaylistId: song._contextPlaylistId,
+                    _dailyMixContext: song._dailyMixContext,
                     _uniqueId: uniqueId,
                 };
             }

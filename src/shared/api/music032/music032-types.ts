@@ -111,6 +111,56 @@ export type M032Capabilities = {
     };
 };
 
+export type M032DailyMix = {
+    coverUrls: string[];
+    createdAt: string;
+    day: string;
+    description: string;
+    durationMillis: number;
+    id: number;
+    /** 1 like, -1 dislike, 0 none. */
+    rating: number;
+    ratingReasons: string[];
+    savedPlaylistId?: number;
+    slot: number;
+    /** active | replaced | ... */
+    status: string;
+    tags: M032DailyMixTag[];
+    themeKey: string;
+    themeType: string;
+    themeTypeLabel: string;
+    title: string;
+    trackCount: number;
+};
+
+export type M032DailyMixDetail = {
+    mix: M032DailyMix;
+    tracks: M032DailyMixTrack[];
+};
+
+export type M032DailyMixList = {
+    day: string;
+    items: M032DailyMix[];
+    message?: string;
+    replacementsLeft: number;
+    /** ready | generating (HTTP 202) | disabled | not_ready */
+    status: string;
+};
+
+export type M032DailyMixTag = {
+    kind: 'mood' | 'style' | string;
+    label: string;
+    tag: string;
+};
+
+export type M032DailyMixTrack = {
+    blocked?: boolean;
+    /** explore = a track you have hardly played yet. */
+    bucket: string;
+    position: number;
+    track: M032Track;
+};
+
 export type M032HomeAlbumPane = {
     album: M032Album;
     focus: string;
@@ -152,6 +202,10 @@ export type M032HomeResponse = {
     };
     works: M032RotationPage<M032HomeWorkCard>;
 };
+
+// ---------------------------------------------------------------------------
+// Home API (/api/v1/home*, docs/api/home.md in 032music-server)
+// ---------------------------------------------------------------------------
 
 export type M032HomeSeriesPane = {
     albumCount: number;
@@ -201,10 +255,6 @@ export type M032Lyrics = {
     lines: { text: string; timeMs: number }[];
     synced: boolean;
 };
-
-// ---------------------------------------------------------------------------
-// Home API (/api/v1/home*, docs/api/home.md in 032music-server)
-// ---------------------------------------------------------------------------
 
 export type M032Page<T> = {
     items: T[];
@@ -374,6 +424,9 @@ export type M032TrackCredit = {
     artists: M032ArtistRef[];
     role: string;
 };
+
+// ------------------------------------------------------------ daily mixes
+// GET /api/v1/daily-mixes and /daily-mixes/{id} (032music-server internal/http/daily_mix.go).
 
 export type M032TranscodeFormat = {
     available: boolean;
