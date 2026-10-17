@@ -3,24 +3,22 @@ import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { languages } from '/@/i18n/i18n';
+import { getTranslationDisplayModeOptions } from '/@/renderer/features/lyrics/utils/translation-display-modes';
 import {
     SettingOption,
     SettingsSection,
 } from '/@/renderer/features/settings/components/settings-section';
+import { useMusic032LyricsTranslationSupported } from '/@/renderer/features/shared/hooks/use-music032-capabilities';
 import { useLyricsSettings, useSettingsStoreActions } from '/@/renderer/store';
-import { MultiSelect } from '/@/shared/components/multi-select/multi-select';
 import { NumberInput } from '/@/shared/components/number-input/number-input';
 import { Select } from '/@/shared/components/select/select';
 import { Switch } from '/@/shared/components/switch/switch';
-import { TextInput } from '/@/shared/components/text-input/text-input';
-import { LyricSource } from '/@/shared/types/domain-types';
-
-const localSettings = isElectron() ? window.api.localSettings : null;
 
 export const LyricSettings = memo(() => {
     const { t } = useTranslation();
     const settings = useLyricsSettings();
     const { setSettings } = useSettingsStoreActions();
+    const isTranslationSupported = useMusic032LyricsTranslationSupported();
 
     const updateSetting = (updates: Partial<typeof settings>) => {
         setSettings({
@@ -44,54 +42,6 @@ export const LyricSettings = memo(() => {
                 context: 'description',
             }),
             title: t('setting.followLyric'),
-        },
-        {
-            control: (
-                <Switch
-                    aria-label="Prefer local lyrics"
-                    defaultChecked={settings.preferLocalLyrics}
-                    onChange={(e) => updateSetting({ preferLocalLyrics: e.currentTarget.checked })}
-                />
-            ),
-            description: t('setting.preferLocalLyrics', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.preferLocalLyrics'),
-        },
-        {
-            control: (
-                <Switch
-                    aria-label="Enable fetching lyrics"
-                    defaultChecked={settings.fetch}
-                    onChange={(e) => updateSetting({ fetch: e.currentTarget.checked })}
-                />
-            ),
-            description: t('setting.lyricFetch', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.lyricFetch'),
-        },
-        {
-            control: (
-                <MultiSelect
-                    aria-label="Lyric providers"
-                    clearable
-                    data={Object.values(LyricSource)}
-                    defaultValue={settings.sources}
-                    onChange={(e: string[]) => {
-                        localSettings?.set('lyrics', e);
-                        updateSetting({ sources: e.map((source) => source as LyricSource) });
-                    }}
-                    width={300}
-                />
-            ),
-            description: t('setting.lyricFetchProvider', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.lyricFetchProvider'),
         },
         {
             control: (
@@ -121,24 +71,6 @@ export const LyricSettings = memo(() => {
         },
         {
             control: (
-                <Switch
-                    aria-label="Enable NetEase translations"
-                    defaultChecked={settings.enableNeteaseTranslation}
-                    onChange={(e) => {
-                        const isChecked = e.currentTarget.checked;
-                        updateSetting({ enableNeteaseTranslation: isChecked });
-                        localSettings?.set('enableNeteaseTranslation', isChecked);
-                    }}
-                />
-            ),
-            description: t('setting.neteaseTranslation', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.neteaseTranslation'),
-        },
-        {
-            control: (
                 <NumberInput
                     defaultValue={settings.delayMs}
                     onBlur={(e) => {
@@ -157,6 +89,24 @@ export const LyricSettings = memo(() => {
         },
         {
             control: (
+                <Switch
+                    aria-label="Enable auto translation"
+                    checked={isTranslationSupported && settings.enableAutoTranslation}
+                    disabled={!isTranslationSupported}
+                    onChange={(e) =>
+                        updateSetting({ enableAutoTranslation: e.currentTarget.checked })
+                    }
+                />
+            ),
+            description:
+                t('setting.enableAutoTranslation', {
+                    context: 'description',
+                }) +
+                (isTranslationSupported ? '' : ` ${t('setting.lyricsTranslationServerRequired')}`),
+            title: t('setting.enableAutoTranslation'),
+        },
+        {
+            control: (
                 <Select
                     data={languages}
                     onChange={(value) => {
@@ -168,56 +118,25 @@ export const LyricSettings = memo(() => {
             description: t('setting.translationTargetLanguage', {
                 context: 'description',
             }),
-            isHidden: !isElectron(),
             title: t('setting.translationTargetLanguage'),
         },
         {
             control: (
                 <Select
-                    clearable
-                    data={['Microsoft Azure', 'Google Cloud']}
+                    allowDeselect={false}
+                    data={getTranslationDisplayModeOptions(t)}
                     onChange={(value) => {
-                        updateSetting({ translationApiProvider: value });
+                        if (value === 'bilingual' || value === 'translated') {
+                            updateSetting({ translationDisplayMode: value });
+                        }
                     }}
-                    value={settings.translationApiProvider}
+                    value={settings.translationDisplayMode ?? 'bilingual'}
                 />
             ),
-            description: t('setting.translationApiProvider', {
+            description: t('setting.translationDisplayMode', {
                 context: 'description',
             }),
-            isHidden: !isElectron(),
-            title: t('setting.translationApiProvider'),
-        },
-        {
-            control: (
-                <TextInput
-                    onChange={(e) => {
-                        updateSetting({ translationApiKey: e.currentTarget.value });
-                    }}
-                    value={settings.translationApiKey}
-                />
-            ),
-            description: t('setting.translationApiKey', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.translationApiKey'),
-        },
-        {
-            control: (
-                <Switch
-                    aria-label="Enable auto translation"
-                    defaultChecked={settings.enableAutoTranslation}
-                    onChange={(e) =>
-                        updateSetting({ enableAutoTranslation: e.currentTarget.checked })
-                    }
-                />
-            ),
-            description: t('setting.enableAutoTranslation', {
-                context: 'description',
-            }),
-            isHidden: !isElectron(),
-            title: t('setting.enableAutoTranslation'),
+            title: t('setting.translationDisplayMode'),
         },
     ];
 

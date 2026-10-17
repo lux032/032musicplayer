@@ -1,11 +1,11 @@
-import isElectron from 'is-electron';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from './lyrics-actions.module.css';
 
 import { openLyricSearchModal } from '/@/renderer/features/lyrics/components/lyrics-search-form';
-import { useLyricsSettings, usePlayerSong } from '/@/renderer/store';
+import { useMusic032OnlineLyricsSupported } from '/@/renderer/features/shared/hooks/use-music032-capabilities';
+import { usePlayerSong } from '/@/renderer/store';
 import { ActionIcon } from '/@/shared/components/action-icon/action-icon';
 import { Button } from '/@/shared/components/button/button';
 import { DropdownMenu } from '/@/shared/components/dropdown-menu/dropdown-menu';
@@ -28,6 +28,7 @@ export type OverlayLayerToggle = {
 interface LyricsActionsProps {
     hasLyrics: boolean;
     index: number;
+    isTranslating?: boolean;
     languages: { label: string; value: string }[];
     offsetMs: number;
     onExportLyrics: () => void;
@@ -69,6 +70,7 @@ const getOverlayTooltip = (
 export const LyricsActions = ({
     hasLyrics,
     index,
+    isTranslating = false,
     languages,
     offsetMs,
     onExportLyrics,
@@ -83,14 +85,13 @@ export const LyricsActions = ({
 }: LyricsActionsProps) => {
     const { t } = useTranslation();
     const currentSong = usePlayerSong();
-    const { sources } = useLyricsSettings();
+    const isOnlineLyricsSupported = useMusic032OnlineLyricsSupported();
 
     const handleLyricOffset = (e: number | string) => {
         onUpdateOffset(Number(e));
     };
 
     const isActionsDisabled = !currentSong;
-    const isDesktop = isElectron();
     const hasServerTranslationLayer = overlayLayers.some((layer) => layer.kind === 'translation');
     const hasMultipleLanguages = languages.length > 1;
 
@@ -249,7 +250,7 @@ export const LyricsActions = ({
                 </Group>
             ) : null}
             <Group className={styles.controlsRow} gap="xs" justify="center">
-                {isDesktop && sources.length ? (
+                {isOnlineLyricsSupported ? (
                     <Button
                         disabled={isActionsDisabled}
                         onClick={() =>
@@ -297,19 +298,20 @@ export const LyricsActions = ({
                     }}
                     variant="subtle"
                 />
-                {sources.length ? (
+                {isOnlineLyricsSupported && hasLyrics ? (
                     <Button
                         disabled={isActionsDisabled}
                         onClick={onRemoveLyric}
                         uppercase
                         variant="subtle"
                     >
-                        {hasLyrics && isDesktop ? t('common.clear') : t('common.refresh')}
+                        {t('common.clear')}
                     </Button>
                 ) : null}
-                {isDesktop && sources.length && onTranslateLyric && !hasServerTranslationLayer ? (
+                {hasLyrics && onTranslateLyric && !hasServerTranslationLayer ? (
                     <Button
                         disabled={isActionsDisabled}
+                        loading={isTranslating}
                         onClick={onTranslateLyric}
                         uppercase
                         variant="subtle"

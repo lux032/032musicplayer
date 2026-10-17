@@ -2,10 +2,12 @@ import isElectron from 'is-electron';
 import { useTranslation } from 'react-i18next';
 
 import { languages } from '/@/i18n/i18n';
+import { getTranslationDisplayModeOptions } from '/@/renderer/features/lyrics/utils/translation-display-modes';
 import {
     ListConfigBooleanControl,
     ListConfigTable,
 } from '/@/renderer/features/shared/components/list-config-menu';
+import { useMusic032LyricsTranslationSupported } from '/@/renderer/features/shared/hooks/use-music032-capabilities';
 import {
     useLyricsDisplaySettings,
     useLyricsSettings,
@@ -13,16 +15,11 @@ import {
     useSettingsStoreActions,
 } from '/@/renderer/store';
 import { Fieldset } from '/@/shared/components/fieldset/fieldset';
-import { MultiSelect } from '/@/shared/components/multi-select/multi-select';
 import { NumberInput } from '/@/shared/components/number-input/number-input';
 import { SegmentedControl } from '/@/shared/components/segmented-control/segmented-control';
 import { Select } from '/@/shared/components/select/select';
 import { Slider } from '/@/shared/components/slider/slider';
 import { Stack } from '/@/shared/components/stack/stack';
-import { TextInput } from '/@/shared/components/text-input/text-input';
-import { LyricSource } from '/@/shared/types/domain-types';
-
-const localSettings = isElectron() ? window.api.localSettings : null;
 
 interface LyricsSettingsFormProps {
     settingsKey: string;
@@ -34,6 +31,8 @@ export const LyricsSettingsForm = ({ settingsKey }: LyricsSettingsFormProps) => 
     const displaySettings = useLyricsDisplaySettings(settingsKey);
     const allLyricsDisplay = useSettingsStore((state) => state.lyricsDisplay);
     const { setSettings } = useSettingsStoreActions();
+    const isTranslationSupported = useMusic032LyricsTranslationSupported();
+    const translationDisplayModes = getTranslationDisplayModeOptions(t);
 
     const updateLyricsSetting = (updates: Partial<typeof lyricsSettings>) => {
         setSettings({
@@ -408,55 +407,6 @@ export const LyricsSettingsForm = ({ settingsKey }: LyricsSettingsFormProps) => 
         {
             component: (
                 <ListConfigBooleanControl
-                    onChange={(value) => updateLyricsSetting({ preferLocalLyrics: value })}
-                    value={lyricsSettings.preferLocalLyrics}
-                />
-            ),
-            description: t('setting.preferLocalLyrics', {
-                context: 'description',
-            }),
-            id: 'preferLocalLyrics',
-            isHidden: !isElectron(),
-            label: t('setting.preferLocalLyrics'),
-        },
-        {
-            component: (
-                <ListConfigBooleanControl
-                    onChange={(value) => updateLyricsSetting({ fetch: value })}
-                    value={lyricsSettings.fetch}
-                />
-            ),
-            description: t('setting.lyricFetch', {
-                context: 'description',
-            }),
-            id: 'fetch',
-            isHidden: !isElectron(),
-            label: t('setting.lyricFetch'),
-        },
-        {
-            component: (
-                <MultiSelect
-                    aria-label="Lyric providers"
-                    clearable
-                    data={Object.values(LyricSource)}
-                    defaultValue={lyricsSettings.sources}
-                    onChange={(e: string[]) => {
-                        localSettings?.set('lyrics', e);
-                        updateLyricsSetting({ sources: e.map((source) => source as LyricSource) });
-                    }}
-                    width="100%"
-                />
-            ),
-            description: t('setting.lyricFetchProvider', {
-                context: 'description',
-            }),
-            id: 'sources',
-            isHidden: !isElectron(),
-            label: t('setting.lyricFetchProvider'),
-        },
-        {
-            component: (
-                <ListConfigBooleanControl
                     onChange={(value) => updateLyricsSetting({ enableFurigana: value })}
                     value={lyricsSettings.enableFurigana ?? false}
                 />
@@ -480,38 +430,26 @@ export const LyricsSettingsForm = ({ settingsKey }: LyricsSettingsFormProps) => 
             id: 'enableRomaji',
             label: t('setting.enableRomaji'),
         },
-        {
-            component: (
-                <ListConfigBooleanControl
-                    onChange={(value) => {
-                        updateLyricsSetting({ enableNeteaseTranslation: value });
-                        localSettings?.set('enableNeteaseTranslation', value);
-                    }}
-                    value={lyricsSettings.enableNeteaseTranslation}
-                />
-            ),
-            description: t('setting.neteaseTranslation', {
-                context: 'description',
-            }),
-            id: 'enableNeteaseTranslation',
-            isHidden: !isElectron(),
-            label: t('setting.neteaseTranslation'),
-        },
     ];
+
+    const translationUnavailableNote = isTranslationSupported
+        ? ''
+        : ` ${t('setting.lyricsTranslationServerRequired')}`;
 
     const translationSettings = [
         {
             component: (
                 <ListConfigBooleanControl
+                    disabled={!isTranslationSupported}
                     onChange={(value) => updateLyricsSetting({ enableAutoTranslation: value })}
-                    value={lyricsSettings.enableAutoTranslation}
+                    value={isTranslationSupported && lyricsSettings.enableAutoTranslation}
                 />
             ),
-            description: t('setting.enableAutoTranslation', {
-                context: 'description',
-            }),
+            description:
+                t('setting.enableAutoTranslation', {
+                    context: 'description',
+                }) + translationUnavailableNote,
             id: 'enableAutoTranslation',
-            isHidden: !isElectron(),
             label: t('setting.enableAutoTranslation'),
         },
         {
@@ -529,44 +467,27 @@ export const LyricsSettingsForm = ({ settingsKey }: LyricsSettingsFormProps) => 
                 context: 'description',
             }),
             id: 'translationTargetLanguage',
-            isHidden: !isElectron(),
             label: t('setting.translationTargetLanguage'),
         },
         {
             component: (
                 <Select
-                    clearable
-                    data={['Microsoft Azure', 'Google Cloud']}
+                    allowDeselect={false}
+                    data={translationDisplayModes}
                     onChange={(value) => {
-                        updateLyricsSetting({ translationApiProvider: value });
+                        if (value === 'bilingual' || value === 'translated') {
+                            updateLyricsSetting({ translationDisplayMode: value });
+                        }
                     }}
-                    value={lyricsSettings.translationApiProvider}
+                    value={lyricsSettings.translationDisplayMode ?? 'bilingual'}
                     width="100%"
                 />
             ),
-            description: t('setting.translationApiProvider', {
+            description: t('setting.translationDisplayMode', {
                 context: 'description',
             }),
-            id: 'translationApiProvider',
-            isHidden: !isElectron(),
-            label: t('setting.translationApiProvider'),
-        },
-        {
-            component: (
-                <TextInput
-                    onChange={(e) => {
-                        updateLyricsSetting({ translationApiKey: e.currentTarget.value });
-                    }}
-                    value={lyricsSettings.translationApiKey}
-                    width="100%"
-                />
-            ),
-            description: t('setting.translationApiKey', {
-                context: 'description',
-            }),
-            id: 'translationApiKey',
-            isHidden: !isElectron(),
-            label: t('setting.translationApiKey'),
+            id: 'translationDisplayMode',
+            label: t('setting.translationDisplayMode'),
         },
     ];
 

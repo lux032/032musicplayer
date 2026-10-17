@@ -70,16 +70,13 @@ declare global {
         FS_LYRICS_ALIGNMENT?: string;
         FS_LYRICS_DELAY_MS?: string;
         FS_LYRICS_ENABLE_AUTO_TRANSLATION?: string;
-        FS_LYRICS_FETCH?: string;
         FS_LYRICS_FOLLOW?: string;
         FS_LYRICS_FOLLOW_SCROLL_ALIGNMENT?: string;
         FS_LYRICS_LINE_LEAD_TIME_MS?: string;
         FS_LYRICS_PADDING_LEFT?: string;
         FS_LYRICS_PADDING_RIGHT?: string;
-        FS_LYRICS_PREFER_LOCAL?: string;
         FS_LYRICS_SHOW_MATCH?: string;
         FS_LYRICS_SHOW_PROVIDER?: string;
-        FS_LYRICS_TRANSLATION_API_KEY?: string;
         FS_LYRICS_TRANSLATION_TARGET_LANGUAGE?: string;
         FS_PLAYBACK_AUDIO_FADE_ON_STATUS_CHANGE?: string;
         FS_PLAYBACK_FILTERS?: string;

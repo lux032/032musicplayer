@@ -40,6 +40,11 @@ import {
     LyricsOverride,
 } from '/@/shared/types/domain-types';
 
+const LYRIC_SOURCE_NAMES: Record<string, string> = {
+    [LyricSource.LRCLIB]: 'LRCLIB',
+    [LyricSource.NETEASE]: 'NetEase',
+};
+
 interface SearchResultProps {
     data: InternetProviderLyricSearchResponse;
     isSelected?: boolean;
@@ -54,8 +59,7 @@ const SearchResult = ({ data, isSelected, onClick }: SearchResultProps) => {
         return ((1 - score) * 100).toFixed(2);
     }, [score]);
 
-    const cleanId =
-        source === LyricSource.GENIUS ? id.replace(/^((http[s]?|ftp):\/)?\/?([^:/\s]+)/g, '') : id;
+    const sourceName = LYRIC_SOURCE_NAMES[source] ?? source;
 
     const syncStatus = useMemo(() => {
         if (isSync === true) {
@@ -83,7 +87,7 @@ const SearchResult = ({ data, isSelected, onClick }: SearchResultProps) => {
                     <Text isMuted>{artist}</Text>
                     <Group gap="sm" wrap="nowrap">
                         <Text isMuted size="sm">
-                            {[source, cleanId, syncStatus].join(' — ')}
+                            {[sourceName, id, syncStatus].join(' — ')}
                         </Text>
                     </Group>
                 </Stack>
@@ -118,7 +122,13 @@ export const LyricsSearchForm = ({ artist, name, onSearchOverride }: LyricSearch
 
     const { data, isLoading } = useQuery(
         lyricsQueries.search({
-            query: { artist: debouncedArtist, name: debouncedName },
+            options: { enabled: !!currentSong?._serverId },
+            query: {
+                artist: debouncedArtist,
+                duration: currentSong?.duration ? currentSong.duration / 1000 : undefined,
+                name: debouncedName,
+            },
+            serverId: currentSong?._serverId || '',
         }),
     );
 
@@ -136,18 +146,7 @@ export const LyricsSearchForm = ({ artist, name, onSearchOverride }: LyricSearch
         }),
     );
 
-    const searchResults = useMemo(() => {
-        if (!data) return [];
-
-        const results: InternetProviderLyricSearchResponse[] = [];
-        Object.keys(data).forEach((key) => {
-            (data[key as keyof typeof data] || []).forEach((result) => results.push(result));
-        });
-
-        const scoredResults = orderBy(results, ['score'], ['asc']);
-
-        return scoredResults;
-    }, [data]);
+    const searchResults = useMemo(() => orderBy(data ?? [], ['score'], ['asc']), [data]);
 
     const handleApply = () => {
         if (selectedResult && onSearchOverride) {

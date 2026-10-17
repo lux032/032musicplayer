@@ -1680,11 +1680,10 @@ export const instanceOfCancellationError = (error: any) => {
     return 'revert' in error;
 };
 
+/** Online lyrics sources of the 032 server (ids used by its API). */
 export enum LyricSource {
-    GENIUS = 'Genius',
-    LRCLIB = 'lrclib.net',
-    NETEASE = 'NetEase',
-    SIMPMUSIC = 'SimpMusic',
+    LRCLIB = 'lrclib',
+    NETEASE = 'netease',
 }
 
 export type AlbumRadioArgs = BaseEndpointArgs & {

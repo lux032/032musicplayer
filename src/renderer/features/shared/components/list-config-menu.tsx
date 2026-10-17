@@ -60,15 +60,21 @@ export const DISPLAY_TYPES = [
 ];
 
 export const ListConfigBooleanControl = ({
+    disabled,
     onChange,
     value,
 }: {
+    disabled?: boolean;
     onChange: (value: boolean) => void;
     value: boolean;
 }) => {
     return (
         <Group justify="flex-end" w="100%">
-            <Switch checked={value} onChange={(e) => onChange(e.currentTarget.checked)} />
+            <Switch
+                checked={value}
+                disabled={disabled}
+                onChange={(e) => onChange(e.currentTarget.checked)}
+            />
         </Group>
     );
 };

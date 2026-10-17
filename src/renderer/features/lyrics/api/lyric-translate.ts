@@ -1,50 +1,33 @@
-import axios from 'axios';
+import { m032ApiClient, Music032ApiError } from '/@/renderer/api/music032/music032-api';
+import { queryKeys } from '/@/renderer/api/query-keys';
+import { queryClient } from '/@/renderer/lib/react-query';
+import { logger } from '/@/renderer/utils/logger';
+import { M032LyricsTranslation } from '/@/shared/api/music032/music032-types';
+import { ServerListItemWithCredential } from '/@/shared/types/domain-types';
 
+/**
+ * Translate a track's lyrics on the 032 server. The server translates the
+ * lyrics it returns from GET /tracks/{id}/lyrics (NetEase's own translation
+ * when available, otherwise the AI model) and caches the result.
+ * Returns the translation joined by '\n', one entry per lyrics line.
+ */
 export const translateLyrics = async (
-    originalLyrics: string,
-    translationApiKey: string,
-    translationApiProvider: null | string,
-    translationTargetLanguage: null | string,
-) => {
-    let TranslatedText = '';
-    if (translationApiProvider === 'Microsoft Azure') {
-        try {
-            const response = await axios({
-                data: [
-                    {
-                        Text: originalLyrics,
-                    },
-                ],
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Ocp-Apim-Subscription-Key': translationApiKey,
-                },
-                method: 'post',
-                url: `https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&to=${translationTargetLanguage as string}`,
-            });
-            TranslatedText = response.data[0].translations[0].text;
-        } catch (e) {
-            console.error('Microsoft Azure translate request got an error!', e);
-            return null;
+    server: ServerListItemWithCredential,
+    songId: string,
+    targetLanguage: string,
+): Promise<string> => {
+    try {
+        const res = await m032ApiClient({ server }).post<M032LyricsTranslation>(
+            `/tracks/${songId}/lyrics/translation`,
+            { targetLanguage },
+        );
+        return res.lines.join('\n');
+    } catch (error) {
+        if (error instanceof Music032ApiError && error.code === 'translation_disabled') {
+            // Translation was switched off on the server: refresh the capability so the UI hides it.
+            queryClient.invalidateQueries({ queryKey: queryKeys.music032.capabilities(server.id) });
         }
-    } else if (translationApiProvider === 'Google Cloud') {
-        try {
-            const response = await axios({
-                data: {
-                    format: 'text',
-                    q: originalLyrics,
-                },
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                method: 'post',
-                url: `https://translation.googleapis.com/language/translate/v2?target=${translationTargetLanguage as string}&key=${translationApiKey}`,
-            });
-            TranslatedText = response.data.data.translations[0].translatedText;
-        } catch (e) {
-            console.error('Google Cloud translate request got an error!', e);
-            return null;
-        }
+        logger.error('Lyrics translation request failed', { error, songId, targetLanguage });
+        throw error;
     }
-    return TranslatedText;
 };

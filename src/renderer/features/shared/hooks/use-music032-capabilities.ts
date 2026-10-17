@@ -47,3 +47,18 @@ export const useMusic032DailyMixesSupported = (): boolean => {
     const query = useMusic032Capabilities();
     return Boolean(query.data?.features?.dailyMixes);
 };
+
+/** 在线歌词（网易云、LRCLIB）是否可用：可以搜索、手动选择、清除歌词（能力位 features.lyricsOnline）。 */
+export const useMusic032OnlineLyricsSupported = (): boolean => {
+    const query = useMusic032Capabilities();
+    return Boolean(query.data?.features?.lyricsOnline);
+};
+
+/**
+ * 歌词翻译是否可用（能力位 features.lyricsTranslation）：服务端配置了模型并开启翻译后为真。
+ * 模型设置只在服务端；能力位未加载时按不可用处理。
+ */
+export const useMusic032LyricsTranslationSupported = (): boolean => {
+    const query = useMusic032Capabilities();
+    return Boolean(query.data?.features?.lyricsTranslation);
+};

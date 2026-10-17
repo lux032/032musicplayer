@@ -29,7 +29,7 @@ import { FontValueSchema } from '/@/renderer/types/fonts';
 import { randomString } from '/@/renderer/utils';
 import { sanitizeCss } from '/@/renderer/utils/sanitize';
 import { AppTheme } from '/@/shared/themes/app-theme-types';
-import { LibraryItem, LyricSource, SavedCollection } from '/@/shared/types/domain-types';
+import { LibraryItem, SavedCollection } from '/@/shared/types/domain-types';
 import {
     FontType,
     ItemListKey,
@@ -635,18 +635,13 @@ const LyricsSettingsSchema = z.object({
     delayMs: z.number(),
     enableAutoTranslation: z.boolean(),
     enableFurigana: z.boolean().optional(),
-    enableNeteaseTranslation: z.boolean(),
     enableRomaji: z.boolean().optional(),
-    fetch: z.boolean(),
     follow: z.boolean(),
     followScrollAlignment: z.number(),
     lineLeadTimeMs: z.number(),
-    preferLocalLyrics: z.boolean(),
     showMatch: z.boolean(),
     showProvider: z.boolean(),
-    sources: z.array(z.nativeEnum(LyricSource)),
-    translationApiKey: z.string(),
-    translationApiProvider: z.string().nullable(),
+    translationDisplayMode: z.enum(['bilingual', 'translated']).optional(),
     translationTargetLanguage: z.string().nullable(),
 });
 
@@ -2033,18 +2028,13 @@ const initialState: SettingsState = {
         delayMs: 0,
         enableAutoTranslation: false,
         enableFurigana: false,
-        enableNeteaseTranslation: false,
         enableRomaji: false,
-        fetch: true,
         follow: true,
         followScrollAlignment: 0,
         lineLeadTimeMs: 800,
-        preferLocalLyrics: true,
         showMatch: false,
         showProvider: false,
-        sources: [LyricSource.NETEASE, LyricSource.LRCLIB],
-        translationApiKey: '',
-        translationApiProvider: '',
+        translationDisplayMode: 'bilingual',
         translationTargetLanguage: 'en',
     },
     lyricsDisplay: {
@@ -2941,10 +2931,27 @@ export const useSettingsStore = createWithEqualityFn<SettingsSlice>()(
                     );
                 }
 
+                if (version < 37) {
+                    // 032: lyrics translation models are configured on the 032 server now;
+                    // drop the old client-side provider settings (including any stored API key).
+                    const lyrics = state.lyrics as Record<string, unknown> | undefined;
+                    if (lyrics) {
+                        delete lyrics.translationApiBaseUrl;
+                        delete lyrics.translationApiKey;
+                        delete lyrics.translationApiProvider;
+                        delete lyrics.translationModel;
+                        // Lyrics (local, online, NetEase translation) are resolved by the server now.
+                        delete lyrics.enableNeteaseTranslation;
+                        delete lyrics.fetch;
+                        delete lyrics.preferLocalLyrics;
+                        delete lyrics.sources;
+                    }
+                }
+
                 return persistedState;
             },
             name: 'store_settings',
-            version: 36,
+            version: 37,
         },
     ),
 );

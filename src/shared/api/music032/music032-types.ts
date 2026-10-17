@@ -256,9 +256,44 @@ export type M032HomeWorkCard = {
     year: number;
 };
 
+/**
+ * GET /tracks/{id}/lyrics. The server resolves the lyrics: a user's manual
+ * choice, then the sidecar .lrc / embedded tag, then online lyrics (cached).
+ */
 export type M032Lyrics = {
     lines: { text: string; timeMs: number }[];
+    /** True when a user picked these lyrics via search (overrides local lyrics). */
+    manual?: boolean;
+    remoteArtist?: string;
+    remoteTitle?: string;
+    /** file | embedded | netease | lrclib */
+    source?: string;
+    sourceName?: string;
     synced: boolean;
+};
+
+/** GET /lyrics/search result; score 0 is a perfect match. */
+export type M032LyricsSearchResult = {
+    album?: string;
+    artist: string;
+    durationMs?: number;
+    id: string;
+    name: string;
+    score: number;
+    source: string;
+    synced: boolean | null;
+};
+
+/** POST /tracks/{id}/lyrics/translation: `lines` has the same length as the request lines. */
+export type M032LyricsTranslation = {
+    cached: boolean;
+    id: number;
+    lines: string[];
+    model: string;
+    /** ai, or the lyrics source whose own translation was used (netease). */
+    source: string;
+    targetLanguage: string;
+    updatedAt?: string;
 };
 
 export type M032Page<T> = {

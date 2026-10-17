@@ -135,6 +135,20 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
   React `removeChild` 抛 `NotFoundError`，筛选侧栏崩进错误边界（F5 后必现）。
   别去掉这层 div。
 
+### 歌词与翻译（全部由 032 服务端处理）
+- **歌词获取**：客户端只请求 `GET /tracks/{id}/lyrics`，由服务端决定用哪份歌词：手动选择 > 同目录 `.lrc` > 内嵌歌词 > 在线歌词缓存 > 在线搜索（网易云、LRCLIB，首次请求时抓取并缓存；没找到的 12 小时后再试）。响应里的 `sourceName`、`remoteTitle`、`remoteArtist` 用于「显示来源」「显示匹配」。
+- **删除的客户端代码**：主进程的在线歌词抓取（`src/main/features/core/lyrics/` 只保留假名注音、罗马音转换）、preload 的三个歌词 IPC，以及设置项「歌词来源」「自动获取歌词」「优先本地歌词」「网易云翻译合并」（`sources` / `fetch` / `preferLocalLyrics` / `enableNeteaseTranslation`），连同对应的主进程同步、统计埋点、`FS_LYRICS_FETCH` / `FS_LYRICS_PREFER_LOCAL` 环境变量。`settings.store.ts` 版本 37 迁移会删掉这些已保存的值。`LyricSource` 枚举改为服务端的来源 id（`netease` / `lrclib`）。
+- **搜索与纠正**（`lyrics-api.ts`、`lyrics-search-form.tsx`）：
+  - 搜索走 `GET /lyrics/search`，预览走 `GET /lyrics/remote/{source}/{id}`；
+  - 「确定」调用 `PUT /tracks/{id}/lyrics/source`，选中的歌词会保存到服务端，对所有设备生效；
+  - 「清除」调用 `DELETE /tracks/{id}/lyrics/source`，清除在线歌词并停止自动搜索，本地歌词照常显示。
+  - 这两个按钮按能力位 `features.lyricsOnline`（`useMusic032OnlineLyricsSupported`）显示，网页版也能用。
+- **翻译**：`lyric-translate.ts` 只发送 `{targetLanguage}`，原文由服务端取。歌词来自网易云、目标语言为简体中文时，服务端直接用网易云自带的翻译；其他情况在服务端开启 AI 翻译后由模型翻译并缓存（模型设置只在服务端：控制台 → 歌词翻译）。删除了 Feishin 原有的 Azure / Google 直连和客户端的提供商 / API Key 设置。手动换歌词或清除后，当前译文立即作废。
+- 能力位 `features.lyricsTranslation`（`useMusic032LyricsTranslationSupported`）为真时才显示翻译按钮、允许自动翻译；服务端返回 `translation_disabled` 时刷新能力位。
+- 新增显示方式 `lyrics.translationDisplayMode`：`bilingual`（原文下方显示译文）/ `translated`（用译文替换原文，保留时间轴；逐字卡拉 OK、注音、罗马音关闭）。两个设置表单（`lyric-settings.tsx`、`lyrics-settings-form.tsx`）选项一致，选项定义在 `lyrics/utils/translation-display-modes.ts`。
+- `list-config-menu.tsx` 的 `ListConfigBooleanControl` 加可选 `disabled`。
+- 歌词偏移仍只在客户端（当前会话），不保存到服务端。
+
 ### `src/i18n/locales/en.json`、`zh-Hans.json`、`zh-Hant.json`
 - 新增 `error.music032*`（5 个）和 `form.addServer.input_music032*`（5 个）。
 - 新增 `page.home.music032*`（032 主页全部文案，含页签、区块标题、用途角色短标签、

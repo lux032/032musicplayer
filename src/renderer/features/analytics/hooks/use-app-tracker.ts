@@ -17,7 +17,7 @@ import {
     useSettingsStore,
 } from '/@/renderer/store';
 import { logger } from '/@/renderer/utils/logger';
-import { LyricSource, ServerType } from '/@/shared/types/domain-types';
+import { ServerType } from '/@/shared/types/domain-types';
 import { FontType, Platform, PlayerStyle, PlayerType } from '/@/shared/types/types';
 
 const utils = isElectron() ? window.api.utils : null;
@@ -79,11 +79,6 @@ type SettingsProperties = {
     'settings.homeFeature': boolean;
     'settings.language': string;
     'settings.lyrics.enableAutoTranslation': boolean;
-    'settings.lyrics.enableNeteaseTranslation': boolean;
-    'settings.lyrics.fetch': boolean;
-    'settings.lyrics.sources.genius': boolean;
-    'settings.lyrics.sources.lrclib': boolean;
-    'settings.lyrics.sources.netease': boolean;
     'settings.minimizeToTray': boolean;
     'settings.nativeAspectRatio': boolean;
     'settings.playerbarSliderType': PlayerbarSliderType;
@@ -154,22 +149,6 @@ const getSettingsProperties = (): SettingsProperties => {
         'settings.language': settings.general.language,
         // 'settings.lastFM': settings.general.lastFM,
         'settings.lyrics.enableAutoTranslation': ignoreWeb(settings.lyrics.enableAutoTranslation),
-        'settings.lyrics.enableNeteaseTranslation': ignoreWeb(
-            settings.lyrics.enableNeteaseTranslation,
-        ),
-        'settings.lyrics.fetch': ignoreWeb(settings.lyrics.fetch),
-        'settings.lyrics.sources.genius': ignoreWeb(
-            settings.lyrics.sources.includes(LyricSource.GENIUS),
-        ),
-        'settings.lyrics.sources.lrclib': ignoreWeb(
-            settings.lyrics.sources.includes(LyricSource.LRCLIB),
-        ),
-        'settings.lyrics.sources.netease': ignoreWeb(
-            settings.lyrics.sources.includes(LyricSource.NETEASE),
-        ),
-        'settings.lyrics.sources.simpmusic': ignoreWeb(
-            settings.lyrics.sources.includes(LyricSource.SIMPMUSIC),
-        ),
         'settings.minimizeToTray': ignoreWeb(settings.window.minimizeToTray),
         // 'settings.musicBrainz': settings.general.musicBrainz,
         'settings.nativeAspectRatio': settings.general.nativeAspectRatio,
