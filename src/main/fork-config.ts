@@ -17,8 +17,10 @@ export const UPDATER_OWNER = 'lux032';
 export const UPDATER_REPO = '032musicplayer';
 
 /**
- * 032musicplayer releases live in a private repository, which electron-updater
- * can only read with a GitHub token embedded in the app. Auto-update stays off
- * until there is a public or token-free update feed.
+ * The release repository is public, so electron-updater reads its GitHub
+ * releases without a token. Updates are detected by version: the publish
+ * workflow overwrites assets of the current version, so only a version bump
+ * reaches installed clients. macOS only gets the (hidden) update dialog signal,
+ * so in practice this updates Windows (NSIS) and Linux (AppImage) builds.
  */
-export const AUTO_UPDATE_ENABLED = false;
+export const AUTO_UPDATE_ENABLED = true;
