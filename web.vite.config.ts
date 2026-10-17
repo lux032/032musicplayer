@@ -119,8 +119,8 @@ export default defineConfig({
                 screenshots: [
                     {
                         form_factor: 'wide',
-                        label: 'Full screen player showing music player and lyrics',
-                        sizes: '720x450',
+                        label: '032musicplayer home page with queue and lyrics',
+                        sizes: '1280x671',
                         src: 'preview_full_screen_player.webp',
                         type: 'image/webp',
                     },

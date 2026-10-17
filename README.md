@@ -32,6 +32,10 @@
 
 相对 Feishin 的改动详见 [MUSIC032_CHANGES.md](MUSIC032_CHANGES.md)。
 
+## 截图
+
+<a href="./media/preview_home.jpg"><img src="./media/preview_home.jpg" alt="032musicplayer 主页" width="100%"/></a>
+
 ## 安装
 
 ### 桌面端（推荐）
