@@ -1,6 +1,6 @@
 {
     "name": "032musicplayer",
-    "version": "1.17.4",
+    "version": "1.0.0",
     "description": "Desktop client for 032 Music Server, built on Feishin.",
     "keywords": [
         "032music",
