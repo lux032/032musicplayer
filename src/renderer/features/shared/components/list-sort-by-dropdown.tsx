@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from 'react';
 import i18n from '/@/i18n/i18n';
 import { useSortByFilter } from '/@/renderer/features/shared/hooks/use-sort-by-filter';
 import { useCurrentServer } from '/@/renderer/store';
+import { hasFeature } from '/@/shared/api/utils';
 import { Button } from '/@/shared/components/button/button';
 import { DropdownMenu } from '/@/shared/components/dropdown-menu/dropdown-menu';
 import {
@@ -13,11 +14,26 @@ import {
     LibraryItem,
     PlaylistListSort,
     RadioListSort,
+    ServerListItem,
     ServerType,
     SongListSort,
     SortOrder,
 } from '/@/shared/types/domain-types';
+import { ServerFeature } from '/@/shared/types/features-types';
 import { ItemListKey } from '/@/shared/types/types';
+
+type SortOption = {
+    /** 032: only offered when the server has the /browse lists (ServerFeature.MUSIC032_BROWSE). */
+    browseOnly?: boolean;
+    defaultOrder: SortOrder;
+    name: string;
+    value: string;
+};
+
+const sortOptions = (options: SortOption[], server: null | ServerListItem): SortOption[] =>
+    options.filter(
+        (option) => !option.browseOnly || hasFeature(server, ServerFeature.MUSIC032_BROWSE),
+    );
 
 interface ListSortByDropdownProps {
     defaultSortByValue: string;
@@ -41,8 +57,8 @@ export const ListSortByDropdown = ({
 
     const { setSortBy, sortBy } = useSortByFilter(defaultSortByValue, listKey);
 
-    const sortByLabel =
-        (itemType && FILTERS[itemType][server.type].find((f) => f.value === sortBy)?.name) || '—';
+    const options = sortOptions(FILTERS[itemType][server.type], server);
+    const sortByLabel = (itemType && options.find((f) => f.value === sortBy)?.name) || '—';
 
     const handleSortByChange = (sortBy: string) => {
         setSortBy(sortBy);
@@ -61,7 +77,7 @@ export const ListSortByDropdown = ({
                 )}
             </DropdownMenu.Target>
             <DropdownMenu.Dropdown>
-                {FILTERS[itemType][server.type].map((f) => (
+                {options.map((f) => (
                     <DropdownMenu.Item
                         isSelected={f.value === sortBy}
                         key={`filter-${f.name}`}
@@ -95,7 +111,8 @@ export const ListSortByDropdownControlled = ({
 }: ListSortByDropdownControlledProps) => {
     const server = useCurrentServer();
 
-    const availableFilters = filters || (itemType && FILTERS[itemType]?.[server.type]) || [];
+    const availableFilters =
+        filters || sortOptions((itemType && FILTERS[itemType]?.[server.type]) || [], server);
 
     const sortByLabel = availableFilters.find((f) => f.value === sortBy)?.name || '—';
 
@@ -301,9 +318,7 @@ export const CLIENT_SIDE_ALBUM_FILTERS = [
     },
 ];
 
-const ALBUM_LIST_FILTERS: Partial<
-    Record<ServerType, Array<{ defaultOrder: SortOrder; name: string; value: string }>>
-> = {
+const ALBUM_LIST_FILTERS: Partial<Record<ServerType, SortOption[]>> = {
     [ServerType.JELLYFIN]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -376,6 +391,12 @@ const ALBUM_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.DESC,
             name: i18n.t('filter.releaseYear'),
             value: AlbumListSort.YEAR,
+        },
+        {
+            browseOnly: true,
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.random'),
+            value: AlbumListSort.RANDOM,
         },
     ],
     [ServerType.NAVIDROME]: [
@@ -521,9 +542,7 @@ const ALBUM_LIST_FILTERS: Partial<
     ],
 };
 
-const SONG_LIST_FILTERS: Partial<
-    Record<ServerType, Array<{ defaultOrder: SortOrder; name: string; value: string }>>
-> = {
+const SONG_LIST_FILTERS: Partial<Record<ServerType, SortOption[]>> = {
     [ServerType.JELLYFIN]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -606,6 +625,24 @@ const SONG_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.DESC,
             name: i18n.t('filter.releaseYear'),
             value: SongListSort.YEAR,
+        },
+        {
+            browseOnly: true,
+            defaultOrder: SortOrder.DESC,
+            name: i18n.t('filter.recentlyAdded'),
+            value: SongListSort.RECENTLY_ADDED,
+        },
+        {
+            browseOnly: true,
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.duration'),
+            value: SongListSort.DURATION,
+        },
+        {
+            browseOnly: true,
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.random'),
+            value: SongListSort.RANDOM,
         },
     ],
     [ServerType.NAVIDROME]: [
@@ -787,9 +824,7 @@ const PLAYLIST_SONG_LIST_FILTERS: Partial<
     [ServerType.SUBSONIC]: CLIENT_SIDE_SONG_FILTERS,
 };
 
-const ALBUM_ARTIST_LIST_FILTERS: Partial<
-    Record<ServerType, Array<{ defaultOrder: SortOrder; name: string; value: string }>>
-> = {
+const ALBUM_ARTIST_LIST_FILTERS: Partial<Record<ServerType, SortOption[]>> = {
     [ServerType.JELLYFIN]: [
         {
             defaultOrder: SortOrder.ASC,
@@ -832,6 +867,12 @@ const ALBUM_ARTIST_LIST_FILTERS: Partial<
             defaultOrder: SortOrder.DESC,
             name: i18n.t('filter.songCount'),
             value: AlbumArtistListSort.SONG_COUNT,
+        },
+        {
+            browseOnly: true,
+            defaultOrder: SortOrder.ASC,
+            name: i18n.t('filter.random'),
+            value: AlbumArtistListSort.RANDOM,
         },
     ],
     [ServerType.NAVIDROME]: [

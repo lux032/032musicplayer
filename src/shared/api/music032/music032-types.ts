@@ -393,6 +393,8 @@ export type M032Status = {
 export type M032Track = {
     addedAt: string;
     album: string;
+    /** Credited album artists; only /browse/tracks returns them (C7). */
+    albumArtists?: M032ArtistRef[];
     albumId: number;
     arranger: string;
     artist: string;

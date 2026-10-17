@@ -9,6 +9,8 @@ export enum ServerFeature {
     JUKEBOX = 'jukebox',
     LYRICS_MULTIPLE_STRUCTURED = 'lyricsMultipleStructured',
     LYRICS_SINGLE_STRUCTURED = 'lyricsSingleStructured',
+    /** 032 /api/v1/browse/* lists: order, seeded random, album year range, artist refs. */
+    MUSIC032_BROWSE = 'music032Browse',
     MUSIC_FOLDER_MULTISELECT = 'musicFolderMultiselect',
     OS_FORM_POST = 'osFormPost',
     OS_TRANSCODE_DECISION = 'osTranscodeDecision',

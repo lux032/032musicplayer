@@ -91,7 +91,11 @@ const normalizeSong = (ctx: M032Context, item: M032Track, albumArtists?: Related
         }
     }
     const year = item.year > 0 ? item.year : null;
-    const resolvedAlbumArtists = albumArtists?.length ? albumArtists : artists;
+    const resolvedAlbumArtists = albumArtists?.length
+        ? albumArtists
+        : item.albumArtists?.length
+          ? item.albumArtists.map(relatedArtist)
+          : artists;
 
     return {
         _itemType: LibraryItem.SONG,

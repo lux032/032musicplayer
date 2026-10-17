@@ -26,7 +26,7 @@ import {
     M032SimilarTrack,
     M032Track,
 } from '/@/shared/api/music032/music032-types';
-import { sortAlbumList, sortSongList } from '/@/shared/api/utils';
+import { hasFeature, sortAlbumList, sortSongList } from '/@/shared/api/utils';
 import {
     Album,
     AlbumArtistListSort,
@@ -112,8 +112,9 @@ const countOf = async (
     query: Record<string, number | string | undefined>,
 ) => (await client.get<M032Page<unknown>>(path, { query: { ...query, limit: 1 } })).total;
 
-// 032 sorts have a fixed direction per key; sortOrder cannot be honoured
-// until the server adds an order parameter (see MUSIC032_CHANGES.md, C list).
+// Legacy /albums, /tracks, /artists sorts have a fixed direction per key and
+// ignore sortOrder; servers with features.browse (ServerFeature.MUSIC032_BROWSE)
+// are read through /browse/*, which honours order and adds random (C2/C3).
 const ALBUM_SORT: Partial<Record<AlbumListSort, string>> = {
     [AlbumListSort.RECENTLY_ADDED]: 'added',
     [AlbumListSort.RECENTLY_PLAYED]: 'recentlyPlayed',
@@ -179,6 +180,107 @@ const artistQuery = (
     role,
     sort: query.sortBy ? ARTIST_SORT[query.sortBy as AlbumArtistListSort] : undefined,
 });
+
+const ALBUM_BROWSE_SORT: Partial<Record<AlbumListSort, string>> = {
+    ...ALBUM_SORT,
+    [AlbumListSort.NAME]: 'title',
+    [AlbumListSort.RANDOM]: 'random',
+};
+
+const SONG_BROWSE_SORT: Partial<Record<SongListSort, string>> = {
+    ...SONG_SORT,
+    [SongListSort.ALBUM]: 'album',
+    [SongListSort.DURATION]: 'duration',
+    [SongListSort.RANDOM]: 'random',
+    [SongListSort.RECENTLY_ADDED]: 'added',
+};
+
+const ARTIST_BROWSE_SORT: Partial<Record<AlbumArtistListSort | ArtistListSort, string>> = {
+    ...ARTIST_SORT,
+    [AlbumArtistListSort.NAME]: 'name',
+    [AlbumArtistListSort.RANDOM]: 'random',
+};
+
+const browseOrder = (sortOrder?: SortOrder) =>
+    sortOrder === SortOrder.DESC ? 'desc' : sortOrder === SortOrder.ASC ? 'asc' : undefined;
+
+// sort=random needs one seed for every page of the same list, and a new
+// shuffle when the list is loaded again from the top. Seeds are kept per list
+// query (without paging) and rotate on startIndex 0; counts never rotate.
+const MAX_RANDOM_SEEDS = 50;
+const randomSeeds = new Map<string, number>();
+
+const withRandomSeed = (
+    resource: string,
+    query: Record<string, number | string | undefined>,
+    startIndex?: number,
+) => {
+    if (query.sort !== 'random' || startIndex === undefined) return query;
+    const key = `${resource}:${JSON.stringify(query)}`;
+    let seed = randomSeeds.get(key);
+    if (seed === undefined || startIndex === 0) {
+        seed = Math.floor(Math.random() * 2 ** 31);
+        randomSeeds.delete(key);
+        randomSeeds.set(key, seed);
+        if (randomSeeds.size > MAX_RANDOM_SEEDS) {
+            randomSeeds.delete(randomSeeds.keys().next().value!);
+        }
+    }
+    return { ...query, seed };
+};
+
+const hasBrowse = (server: Server) => hasFeature(server, ServerFeature.MUSIC032_BROWSE);
+
+type ListSource = { path: string; query: Record<string, number | string | undefined> };
+
+const albumList = (
+    server: Server,
+    query: Parameters<typeof albumQuery>[0] & { sortOrder?: SortOrder },
+    startIndex?: number,
+): ListSource => {
+    if (!hasBrowse(server)) return { path: '/albums', query: albumQuery(query) };
+    const sort = query.sortBy ? ALBUM_BROWSE_SORT[query.sortBy] : undefined;
+    const base = {
+        ...albumQuery(query),
+        order: sort ? browseOrder(query.sortOrder) : undefined,
+        sort,
+        year: undefined,
+        yearFrom: query.minYear || undefined,
+        yearTo: query.maxYear || undefined,
+    };
+    return { path: '/browse/albums', query: withRandomSeed('albums', base, startIndex) };
+};
+
+const songList = (
+    server: Server,
+    query: Parameters<typeof songQuery>[0] & { sortOrder?: SortOrder },
+    startIndex?: number,
+): ListSource => {
+    if (!hasBrowse(server)) return { path: '/tracks', query: songQuery(query) };
+    const sort = query.sortBy ? SONG_BROWSE_SORT[query.sortBy] : undefined;
+    const base = {
+        ...songQuery(query),
+        order: sort ? browseOrder(query.sortOrder) : undefined,
+        sort,
+    };
+    return { path: '/browse/tracks', query: withRandomSeed('tracks', base, startIndex) };
+};
+
+const artistList = (
+    server: Server,
+    role: 'album' | 'all',
+    query: Parameters<typeof artistQuery>[1] & { sortOrder?: SortOrder },
+    startIndex?: number,
+): ListSource => {
+    if (!hasBrowse(server)) return { path: '/artists', query: artistQuery(role, query) };
+    const sort = query.sortBy ? ARTIST_BROWSE_SORT[query.sortBy as AlbumArtistListSort] : undefined;
+    const base = {
+        ...artistQuery(role, query),
+        order: sort ? browseOrder(query.sortOrder) : undefined,
+        sort,
+    };
+    return { path: '/browse/artists', query: withRandomSeed('artists', base, startIndex) };
+};
 
 const sliceFor = <T>(items: T[], startIndex: number, limit?: number) =>
     items.slice(startIndex, limit === undefined || limit < 0 ? undefined : startIndex + limit);
@@ -529,10 +631,11 @@ export const Music032Controller: InternalControllerEndpoint = {
 
     getAlbumArtistList: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
+        const list = artistList(apiClientProps.server, 'album', query, query.startIndex);
         const { items, total } = await fetchPage<M032Artist>(
             m032ApiClient(apiClientProps),
-            '/artists',
-            artistQuery('album', query),
+            list.path,
+            list.query,
             query.startIndex,
             query.limit,
         );
@@ -543,8 +646,10 @@ export const Music032Controller: InternalControllerEndpoint = {
         };
     },
 
-    getAlbumArtistListCount: async ({ apiClientProps, query }) =>
-        countOf(m032ApiClient(apiClientProps), '/artists', artistQuery('album', query)),
+    getAlbumArtistListCount: async ({ apiClientProps, query }) => {
+        const list = artistList(apiClientProps.server, 'album', query);
+        return countOf(m032ApiClient(apiClientProps), list.path, list.query);
+    },
 
     getAlbumDetail: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
@@ -590,10 +695,11 @@ export const Music032Controller: InternalControllerEndpoint = {
                 totalRecordCount: sorted.length,
             };
         }
+        const list = albumList(apiClientProps.server, query, query.startIndex);
         const { items, total } = await fetchPage<M032Album>(
             m032ApiClient(apiClientProps),
-            '/albums',
-            albumQuery(query),
+            list.path,
+            list.query,
             query.startIndex,
             query.limit,
         );
@@ -604,24 +710,15 @@ export const Music032Controller: InternalControllerEndpoint = {
         };
     },
 
-    getAlbumListCount: async ({ apiClientProps, query }) =>
-        discographyArtistId(query)
-            ? (
-                  await artistDiscography(
-                      m032ApiClient(apiClientProps),
-                      m032Context(apiClientProps.server),
-                      discographyArtistId(query)!,
-                  )
-              ).length
-            : query.favorite
-              ? (
-                    await favoriteAlbums(
-                        m032ApiClient(apiClientProps),
-                        m032Context(apiClientProps.server),
-                        query,
-                    )
-                ).length
-              : countOf(m032ApiClient(apiClientProps), '/albums', albumQuery(query)),
+    getAlbumListCount: async ({ apiClientProps, query }) => {
+        const client = m032ApiClient(apiClientProps);
+        const ctx = m032Context(apiClientProps.server);
+        const artistId = discographyArtistId(query);
+        if (artistId) return (await artistDiscography(client, ctx, artistId)).length;
+        if (query.favorite) return (await favoriteAlbums(client, ctx, query)).length;
+        const list = albumList(apiClientProps.server, query);
+        return countOf(client, list.path, list.query);
+    },
 
     getAlbumRadio: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
@@ -635,10 +732,11 @@ export const Music032Controller: InternalControllerEndpoint = {
 
     getArtistList: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
+        const list = artistList(apiClientProps.server, 'all', query, query.startIndex);
         const { items, total } = await fetchPage<M032Artist>(
             m032ApiClient(apiClientProps),
-            '/artists',
-            artistQuery('all', query),
+            list.path,
+            list.query,
             query.startIndex,
             query.limit,
         );
@@ -649,8 +747,10 @@ export const Music032Controller: InternalControllerEndpoint = {
         };
     },
 
-    getArtistListCount: async ({ apiClientProps, query }) =>
-        countOf(m032ApiClient(apiClientProps), '/artists', artistQuery('all', query)),
+    getArtistListCount: async ({ apiClientProps, query }) => {
+        const list = artistList(apiClientProps.server, 'all', query);
+        return countOf(m032ApiClient(apiClientProps), list.path, list.query);
+    },
 
     getArtistRadio: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
@@ -783,8 +883,8 @@ export const Music032Controller: InternalControllerEndpoint = {
 
     getPlayQueue: async () => unsupported('getPlayQueue'),
 
-    // Needs sort=random server-side for true randomness (C list). Until then:
-    // sample from a random window of the filtered library.
+    // Browse servers shuffle the whole filtered library (sort=random, C3).
+    // Older servers: sample from a random window of the filtered library.
     getRandomSongList: async ({ apiClientProps, query }) => {
         const ctx = m032Context(apiClientProps.server);
         const client = m032ApiClient(apiClientProps);
@@ -794,6 +894,18 @@ export const Music032Controller: InternalControllerEndpoint = {
             yearTo: query.maxYear || undefined,
         };
         const limit = Math.max(1, query.limit || 50);
+        if (hasBrowse(apiClientProps.server)) {
+            const page = await client.get<M032Page<M032Track>>('/browse/tracks', {
+                query: {
+                    ...filters,
+                    limit: Math.min(M032_MAX_PAGE_SIZE, limit),
+                    seed: Math.floor(Math.random() * 2 ** 31),
+                    sort: 'random',
+                },
+            });
+            const items = page.items.map((track) => m032Normalize.song(ctx, track));
+            return { items, startIndex: 0, totalRecordCount: items.length };
+        }
         const total = await countOf(client, '/tracks', filters);
         const window = Math.min(M032_MAX_PAGE_SIZE, total);
         const offset = Math.floor(Math.random() * Math.max(1, total - window + 1));
@@ -824,6 +936,9 @@ export const Music032Controller: InternalControllerEndpoint = {
         }
         if (capabilities.features.playlistArtwork) {
             features[ServerFeature.PLAYLIST_IMAGE_UPLOAD] = [1];
+        }
+        if (capabilities.features.browse) {
+            features[ServerFeature.MUSIC032_BROWSE] = [1];
         }
         return {
             features,
@@ -884,10 +999,11 @@ export const Music032Controller: InternalControllerEndpoint = {
             };
         }
 
+        const list = songList(apiClientProps.server, query, query.startIndex);
         const { items, total } = await fetchPage<M032Track>(
             client,
-            '/tracks',
-            { ...base, album: first(query.albumIds) },
+            list.path,
+            { ...list.query, album: first(query.albumIds) },
             query.startIndex,
             query.limit,
         );
@@ -906,8 +1022,9 @@ export const Music032Controller: InternalControllerEndpoint = {
             });
             return res.totalRecordCount ?? 0;
         }
-        return countOf(m032ApiClient(apiClientProps), '/tracks', {
-            ...songQuery(query),
+        const list = songList(apiClientProps.server, query);
+        return countOf(m032ApiClient(apiClientProps), list.path, {
+            ...list.query,
             album: first(query.albumIds),
         });
     },
