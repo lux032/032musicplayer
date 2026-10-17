@@ -78,6 +78,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
   `series`（同名）命名空间，供作品页、系列页和能力位查询使用。
 - 追加 `home.recentPlayed`（主页最近播放）和 `playbackHistory`（`list` / `root`，播放记录页）。
 - 追加 `dailyMixes`（`list` / `detail` / `root`，每日推荐）。
+- `works.ofTrack`：当前曲目所属作品（`GET /tracks/{id}/works`，C11），作品 / 系列卡片正在播放标识用。
 
 ### `src/renderer/router/routes.ts`、`src/renderer/router/app-router.tsx`
 - `AppRoute` 追加 `LIBRARY_WORKS` / `LIBRARY_WORKS_DETAIL` / `LIBRARY_SERIES` / `LIBRARY_SERIES_DETAIL` /
@@ -87,6 +88,8 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 ### `src/shared/types/features-types.ts` 和各 controller 的 `getServerInfo`
 - `ServerFeature` 新增 `INTERNET_RADIO = 'internetRadio'`；Plex / Jellyfin / Subsonic
   controller 声明 `[1]`（Navidrome 继承 Subsonic 的 features），music032 **不声明**。
+- `ServerFeature` 新增 `MUSIC032_BROWSE = 'music032Browse'`：只有 music032 在 capabilities
+  `features.browse` 为真时声明，表示可以走 `/api/v1/browse/*`（见下文"列表接口"）。
 
 ### `src/renderer/store/auth.store.ts`
 - `logout()` 同时清空 `mediaToken`。401 不清空媒体凭据，所以 API Token 被轮换后，重新登录只需要填 API Token。
@@ -105,17 +108,22 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 ### 侧边栏组件（`sidebar.tsx`、`collapsed-sidebar.tsx`、`mobile-sidebar.tsx`、`sidebar-icon.tsx`、`collapsed-sidebar-item.tsx`）
 - 条目 memo 的过滤条件加 `(item.id !== 'Radio' || radioSupported)`，
   `radioSupported` 来自 `useInternetRadioSupported()`（MUSIC032 未声明 `INTERNET_RADIO` 时隐藏电台）；
-  memo 末尾在 `Genres` 后 splice 注入 `useMusic032SidebarItems()` 的作品 / 系列项
-  （id 为 `M032Works` / `M032Series`，不进持久化设置），条目渲染透传 `onClick`。
+  memo 末尾用 `insertMusic032SidebarItems()` 把 `useMusic032SidebarItems()` 的作品 / 系列 / 播放记录项
+  （id 为 `M032Works` / `M032Series` / `M032PlaybackHistory`，不进持久化设置）插到最后一个曲库入口
+  （专辑 / 曲目 / 艺术家）之后，找不到就追加到末尾；条目渲染透传 `onClick`。
+- 流派（Genres）和文件夹（Folders）入口已从侧边栏、设置、命令面板和主页移除；`settings.store.ts`
+  迁移 v36 从已持久化的侧边栏里删掉这两项。
 - `sidebar-icon.tsx`：`LIBRARY_WORKS` / `LIBRARY_SERIES` / `LIBRARY_PLAYBACK_HISTORY` 三个 case（RiBookOpen / RiStack / RiHistory）。
 - `collapsed-sidebar-item.tsx`：props 增加可选 `onClick`（原本就透传其余 props 到 Flex）。
 
 ### `src/renderer/features/settings/components/general/sidebar-reorder.tsx`
 - 电台不受支持时从排序列表里隐藏 Radio 行；`setItemsPreservingRadio` 保证隐藏期间
-  重排不丢持久化的 Radio 设置项。
+  重排不丢持久化的 Radio 设置项。不再列出流派和文件夹。
 
 ### `src/renderer/features/shared/components/list-sort-by-dropdown.tsx`
 - 每张排序表都加 `[ServerType.MUSIC032]`，只列出 032 真正支持的排序（专辑：名称、最近添加、最近播放、发行日期、发行年份；歌曲：专辑、名称、播放次数、最近播放、发行日期、年份；艺人：名称、专辑数、歌曲数；歌单：名称、时长、歌曲数）。
+- 标了 `browseOnly: true` 的排序只在服务端声明 `MUSIC032_BROWSE` 时出现（`sortOptions()` 过滤，两个下拉组件共用）：
+  专辑、专辑艺人的"随机"，歌曲的"最近添加""时长""随机"。
 - `ListSortByDropdown` 直接用 `FILTERS[itemType][server.type]` 取表，**缺一项就会运行时报错**。
   新增排序表时必须补一条 `MUSIC032`（不支持就给 `[]`）。
 
@@ -140,6 +148,10 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - `src/main/features/core/player/index.ts`：`createMpv` 里观察 `paused-for-cache`，转发为 `renderer-player-buffering`；监听 node-mpv 原始 socket 的 `end-file`，`reason === 'error'` 时转发为 `renderer-player-load-error`。
 - `src/preload/mpv-player.ts`：`mpvPlayerListener` 增加 `rendererBuffering`、`rendererLoadError`。
 - `PLAYER_ERROR` 只在"最终失败、准备跳过或暂停"的位置发出，**不要**放在网络重试分支里。
+- `clientKind`（C4）：桌面端在服务端 capabilities `playback.clientKinds` 含 `desktop` 时报 `desktop`，
+  否则（旧服务端、能力位还没加载、网页版）报 `web`。能力位从 react-query 缓存读；
+  `createPlaybackSession` 的 `clientKind` 可以是函数，每个会话开始时取一次并固定（服务端把会话内
+  改 clientKind 视为冲突）。
 - `use-scrobble.ts` **没有改**：032 的 `controller.scrobble` 是空操作，也不声明 `REPORT_PLAYBACK`。
 
 ### 主题与配色（对齐 032 网页）
@@ -150,6 +162,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - 032 页面卡片上的悬浮播放键文字色由 `#fff` 改为 `--theme-colors-primary-contrast`，深色主题下保持可读。
 - 第二轮对照网页逐页修正：裸链接改为继承文字色、悬停才变紫；按钮改胶囊；详情页“播放”为紫色实底、“下一首播放 / 最后播放”为灰底；已收藏心形改红色（`state-error`）；缺图占位改浅灰块；表头改次要色；页头数量改纯文字；标签 Pill 灰底无边框；分段控件改灰底胶囊 + 浮起选中项；播放条空闲时播放键保持墨色。
 - 为让主题能精确定位，`shared/components/icon/icon.tsx` 给 svg 加 `data-icon={icon}`；`play-button.tsx` 的 `PlayTextButton` 在默认“播放”（无自定义 children）上加 `data-primary`。两者对其他主题无视觉影响。
+- 作品海报在作品页、系列页和 032 主页改为 2:3 竖版（动画主视觉不再被裁），专辑封面仍是正方形。
 - 作品 / 系列页：`.page` 补左右 2rem 内边距（此前贴边、右侧数量被裁），列表页加页面标题；作品 / 系列详情与主页聚焦卡的“播放全部 / 播放”为 `filled` + 实心播放图标，“加入队列”为 `default` 灰底；聚焦卡、作品卡、系列横幅 / 行底色改用 `--m032-surface`（缺省回退 `--theme-colors-surface`）。
 - 覆盖样式依赖 CSS Modules 固定类名 `fs-[name]-[local]`（`electron.vite.config.ts` / `web.vite.config.ts`），重命名相关组件或类名时需同步 `music032_overrides.css`。
 
@@ -158,13 +171,42 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - 播放条左侧第三行专辑名后、全屏播放器元数据区（不受“播放器项目”设置控制）、专辑详情页元数据行显示音质。
 - `music032-controller.ts` 的 `getImageUrl`：`size` 为 0（全屏播放器默认“原图”）时不带 `size` 参数，032 服务端会拒绝 `size=0`，之前导致全屏封面裂图。
 
+### 列表接口（C2 / C3 / C7 / C8）
+- `music032-controller.ts`：`albumList` / `songList` / `artistList` 在服务端声明 `MUSIC032_BROWSE` 时
+  走 `/browse/albums|tracks|artists`，带 `order`（feishin 的 sortOrder）、专辑 `yearFrom`/`yearTo`、
+  新排序（专辑 `title` / `random`，歌曲 `album` / `added` / `duration` / `random`，艺人 `name` / `random`）；
+  否则走旧的 `/albums` 等，行为和以前一样。
+- `sort=random` 的 seed：按"列表查询（不含分页）"记住，`startIndex` 为 0 时换新 seed（重新进入或刷新
+  列表即重新洗牌），后续分页沿用；计数请求不带 seed。最多记 50 个列表。
+- `getRandomSongList`：browse 服务端直接 `/browse/tracks?sort=random`，全库均匀随机；旧服务端仍是随机窗口抽样。
+- `music032-normalize.ts`：曲目的 `albumArtists`（browse 才有）优先于用 `artists` 兜底，列表里的专辑艺人可点。
+- 收藏、艺人作品集、多专辑合并这几条路径仍用旧接口（客户端自己排序、筛选）。
+
+### 正在播放标识（C11）
+- `playing-source.ts`：服务端声明 `features.trackWorks` 时，用 `GET /tracks/{id}/works` 查当前曲目所属的
+  作品和系列（每首歌一个共享查询），作品卡片、主页轮换卡片、系列页头的标识从任何入口开始播放都会亮；
+  会话级"作品→曲目"映射（`playing-source-map.ts`）保留，用于旧服务端和查询返回之前。
+
+### 歌单时长
+- 歌单列表、侧边栏歌单、加入歌单弹窗用服务端返回的 `durationMillis`；未知时隐藏时长，不显示 0 秒。
+
+### 品牌与上游服务
+- 界面上的 Feishin 名称改为 032musicplayer（窗口标题、托盘、MPRIS、媒体键提示、远程控制和 PWA 名称、
+  诊断 / 设置导出文件名、全部语言文案）。服务端客户端标识、`feishin://` 协议和存储键保持不变（兼容）。
+- 移除上游 umami 统计脚本和对应 CSP；不再轮询上游 Feishin 发布；隐藏更新日志弹窗、更新对话框和设置里的
+  更新 / 统计分区；帮助 / 版本链接指向本仓库；alpha 更新读本仓库 GitHub Releases。
+- 添加服务器只提供 032 Music（其他类型在选择器里注释掉，自动发现也过滤掉）；已有的其他服务器照常可用。
+
 ### 应用身份
 - `electron-builder.yml`、`electron-builder-alpha.yml`、`electron-builder-beta.yml`：`appId: org.lux032.musicplayer032`，`productName: 032musicplayer`，`publish.repo: 032musicplayer`。
 - `package.json`：`productName: 032musicplayer`；新增脚本 `test:music032`。
-- `src/main/fork-config.ts`：`APP_ID`、`UPDATER_OWNER`、`UPDATER_REPO`、`AUTO_UPDATE_ENABLED = false`。发版仓库是私有的，electron-updater 读私有仓库需要把 GitHub Token 打进安装包，所以默认关闭自动更新。
+- `src/main/fork-config.ts`：`APP_ID`、`UPDATER_OWNER`、`UPDATER_REPO`、`AUTO_UPDATE_ENABLED = true`。发版仓库已公开，electron-updater 不需要 Token。
+  更新按版本号判断：`publish-windows.yml` 推送到 `032music` 时会覆盖当前版本的安装包，所以只有升版本号才会推给已安装的客户端。
+  macOS 只把"有更新"发给已隐藏的更新对话框，实际只有 Windows（NSIS）和 Linux（AppImage）会自动更新。
+- `.github/workflows/publish-windows.yml`：推送到 `032music`（忽略纯文档改动）时自动构建发布；先把同版本的已发布 Release 改回草稿再上传，上传后重新发布。
 - `src/main/index.ts`：从 fork-config 读取 `APP_ID`、`UPDATER_REPO`，`new AppUpdater()` 额外受 `AUTO_UPDATE_ENABLED` 控制。
 - `README.md`：标题和开头注明 032musicplayer 基于 Feishin 二次开发。
-- 未改：Linux 的 `org.jeffvli.feishin.metainfo.xml`（只在打 Linux 包时用到）。
+- Linux：AppStream 元数据换成 `org.lux032.musicplayer032.metainfo.xml`；删掉了上游专用的 AppImage 安装脚本、desktop 模板、WinGet 工作流和 FUNDING.yml。
 
 ---
 
@@ -175,6 +217,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 | `TOP_SONGS_BY_ARTIST_ID` | 总是声明 |
 | `LYRICS_SINGLE_STRUCTURED` | capabilities `features.lyrics` |
 | `PLAYLIST_IMAGE_UPLOAD` | capabilities `features.playlistArtwork` |
+| `MUSIC032_BROWSE` | capabilities `features.browse` |
 
 不声明：`REPORT_PLAYBACK`（上报走专用模块）、`STAR_RATING`、`SERVER_PLAY_QUEUE`、
 `SHARING_ALBUM_SONG`、`PUBLIC_PLAYLIST`、`PLAYLISTS_SMART`、`TAGS`、`JUKEBOX`、
@@ -188,7 +231,7 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 | 方法 | 行为 |
 |------|------|
 | `getFolder`、`getPlayQueue`、`refreshItems`、`startLibraryScan`、网络电台写操作 | 抛出"该服务端未实现" |
-| `getMusicFolderList`、`getGenreList`、`getInternetRadioStations`、`getRoles` | 返回空列表（`getGenreList` 等 C1） |
+| `getMusicFolderList`、`getGenreList`、`getInternetRadioStations`、`getRoles` | 返回空列表（流派导航已移除，C1 不再需要） |
 | `getScanStatus` | `{ scanning: false }` |
 | `savePlayQueue`、`scrobble` | 空操作 |
 | `setRating`、`shareItem`、`jukeboxControl`、艺人图片上传/删除、`getUserList`、`getTagList` | 不实现 |
@@ -199,21 +242,21 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 - **032 主页**：作品和系列已有客户端内页面（`/library/works*`、`/library/series*`），主页、专辑页等
   入口统一走客户端路由；「在网页中打开」作为页面内的次要操作保留（编辑、管理用）。
   网页主页的搜索框未移植（feishin 有全局搜索）；页脚「待审核」仍跳网页（播放记录已有客户端内页面）。
-- **作品卡片播放徽标**：作品 / 系列卡片的播放态来自会话级“作品→曲目”映射（播放展开时记录，
-  上限 200 条）；从专辑页等其他入口开始播放时不亮（等 C11）。
+- **作品卡片播放徽标**：服务端有 `features.trackWorks` 时按曲目所属作品判断；旧服务端只靠会话级
+  “作品→曲目”映射（播放展开时记录，上限 200 条），从专辑页等其他入口开始播放时不亮。
 - **作品列表首字母索引**：`/works` 的 `index` 参数客户端暂未使用（网页有首字母索引栏）。
 - **系列接口回退**：服务端没有系列能力位或返回 404 时，侧边栏「系列」入口打开网页，
   系列路由页显示降级块；作品详情在旧服务端上没有系列横幅和 Bangumi 链接（字段缺失按无处理）。
-- **排序方向**：032 每种排序的方向固定，界面上的升序/降序切换对 032 列表无效（等 C2）。
+- **排序方向**：有 `features.browse` 的服务端支持升序/降序切换；旧服务端每种排序方向固定，切换无效。
 - **多值筛选**：artist / genre / album 筛选只取第一个值；多张专辑会逐个请求再拼接。
-- **专辑年份**：专辑列表只能按单个年份精确筛选（`minYear == maxYear`）；歌曲列表支持区间。
-- **随机歌曲**：在一个随机窗口里抽样，不是全库均匀随机（等 C3）。
-- **列表里的专辑艺人**：专辑列表、曲目里没有专辑艺人的 id，专辑艺人链接只在专辑详情页可用（等 C7）。
+- **专辑年份**：browse 服务端支持年份区间；旧服务端只能按单个年份精确筛选（`minYear == maxYear`）。歌曲列表都支持区间。
+- **随机**：browse 服务端全库均匀随机（带 seed，分页稳定）；旧服务端的随机歌曲在一个随机窗口里抽样，专辑 / 艺人没有随机排序。
+- **列表里的专辑艺人**：browse 服务端的专辑列表、曲目带专辑艺人 id；旧服务端只有专辑详情页能点专辑艺人。
 - **收藏**：032 的 `/albums`、`/tracks` 会忽略 `favorite=true`（只有 `/artists` 支持），所以收藏页的专辑和歌曲改走 `/favorites/albums`、`/favorites/tracks`，一次取回全部收藏，筛选、排序、分页在客户端完成。
 - **歌单重复曲目**：032 歌单里同一首歌只出现一次，重复添加会被服务端跳过。
 - **MPV 载入失败**的结束原因是 `error`（依赖 end-file 转发）；其他 MPV 异常退出不上报，服务端租约到期后按 interrupted 处理。
 - **应用关闭**用 `navigator.sendBeacon` 尽力发送 `client_closed`，失败也只是租约到期，不会多计数。
-- **clientKind** 暂时报 `web`（等 C4）。
+- **clientKind**：桌面端连新服务端报 `desktop`；旧服务端、网页版报 `web`。
 
 ---
 
@@ -221,18 +264,26 @@ Feishin 的 MPV 播放引擎（音频直通、独占模式、bit-perfect）。
 
 约束：**只新增接口，不修改已有接口**（MusicBridge 等客户端依赖现有接口）。
 
+已在 032music-server 实现（客户端按能力位使用，旧服务端自动退回原来的做法）：
+
+| # | 接口 | 能力位 | 说明 |
+|---|------|--------|------|
+| C2 | `GET /api/v1/browse/albums`、`/browse/tracks`、`/browse/artists` | `features.browse` | 接受旧列表的全部筛选参数，外加 `order=asc\|desc`；返回 `{items,total,limit,offset}`；非法参数 400。旧 `/albums` 等行为不变（不认识的 sort 仍按默认顺序） |
+| C3 | browse 接口支持 `sort=random&seed=<n>` | 同上 | 同一个 seed 分页稳定；`/browse/tracks` 另有 `sort=added`、`sort=duration` |
+| C4 | 播放事件 `clientKind` 接受 `desktop` | `playback.clientKinds` | 迁移 051 重建 `playback_sessions` 放宽 CHECK，语义不变 |
+| C7 | browse 里曲目带 `albumArtists:[{id,name}]`、专辑带 `artists:[{id,name}]` | 同 C2 | 列表里的专辑艺人可点击跳转 |
+| C8 | `/browse/albums` 支持 `yearFrom`/`yearTo` | 同 C2 | 与 `/tracks` 一致 |
+| C11 | `GET /api/v1/tracks/{id}/works` → `{items:[{id,title,translatedTitle,type,role,season,seriesId}]}` | `features.trackWorks` | `/works/{id}/tracks` 的反向；作品 / 系列卡片"正在播放"标识 |
+
+仍待后端补：
+
 | # | 新接口 | 说明 |
 |---|--------|------|
-| C1 | `GET /api/v1/genres` → `{items:[{name, albumCount, trackCount}]}` | 流派列表和流派页。鉴权同 `requireAPIOrAdmin` |
-| C2 | `GET /api/v1/browse/albums`、`/browse/tracks`、`/browse/artists` | 新的列表接口族：接受现有 `filters()` 的全部参数，外加 `order=asc\|desc`；返回 `{items,total,limit,offset}`。现有 `/albums` 等保持不变 |
-| C3 | 同上 browse 接口支持 `sort=random&seed=<n>` | 同一个 seed 下分页结果稳定；`/browse/tracks` 额外支持 `sort=added`、`sort=duration` |
-| C4 | 播放事件 `clientKind` 接受 `desktop` | 只放宽枚举校验，不改变语义。若不想动现有接口，客户端会一直报 `web` |
 | C5 | `POST /api/v1/scan`、`GET /api/v1/scan/status` → `{scanning, count, lastScan}` | Bearer 可用的扫描触发和状态。现在只有 `/admin/scan`（需要会话） |
 | C6 | `GET /api/v1/media/ping` → 204（走 `requireMediaAccess`） | 登录时校验媒体凭据。现在用"取一首曲目 + Range 0-0"代替，曲库为空时无法校验 |
-| C7 | C2 的 browse 接口里，曲目带 `albumArtists:[{id,name}]`、专辑带 `artists:[{id,name}]` | 列表里的专辑艺人可点击跳转 |
-| C8 | C2 的 `/browse/albums` 支持 `yearFrom`/`yearTo` | 与 `/tracks` 一致 |
 | C10（可选） | `GET /api/v1/server-info` → `{libraryName}` | 界面上显示的用户名，现在固定为 `032` |
-| C11 | `GET /api/v1/tracks/{id}/works` → `{items:[{id,title}]}`（或在曲目对象里带 `works`） | 作品 / 系列卡片的“正在播放”徽标精确化；现在是会话级映射，只有从卡片 / 作品页 / 系列页开始播放才亮 |
+
+不再需要：C1（`GET /api/v1/genres`）。客户端已经移除流派导航，筛选器里的流派下拉仍是空列表。
 
 （原 C9"专辑详情超过 500 首"已在客户端解决：`trackCount` 大于嵌入的曲目数时改用 `/tracks?album=` 分页补齐。）
 
