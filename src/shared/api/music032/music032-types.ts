@@ -435,6 +435,18 @@ export type M032TrackCredit = {
 // ------------------------------------------------------------ daily mixes
 // GET /api/v1/daily-mixes and /daily-mixes/{id} (032music-server internal/http/daily_mix.go).
 
+/** GET /api/v1/tracks/{id}/works item (capability features.trackWorks, C11). */
+export type M032TrackWork = {
+    id: number;
+    role: string;
+    season: number;
+    /** Omitted when the work belongs to no series. */
+    seriesId?: number;
+    title: string;
+    translatedTitle: string;
+    type: string;
+};
+
 export type M032TranscodeFormat = {
     available: boolean;
     bitrates?: number[];

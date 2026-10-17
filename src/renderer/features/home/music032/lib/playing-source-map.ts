@@ -1,6 +1,7 @@
 // ponytail: session-scoped source → track ids map, filled when a work/series is
-// expanded for playback; capped at 200 entries. Cards of sources played from
-// other surfaces stay unmarked until the backend exposes track → works (C11).
+// expanded for playback; capped at 200 entries. Servers with features.trackWorks
+// (C11) also answer track → works directly (playing-source.ts); this map keeps
+// cards marked on older servers and before that query has loaded.
 const MAX_SOURCES = 200;
 const sourceTracks = new Map<string, Set<number>>();
 const listeners = new Set<() => void>();

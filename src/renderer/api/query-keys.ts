@@ -503,6 +503,9 @@ export const queryKeys: Record<
             args
                 ? ([serverId, 'works', 'list', args] as const)
                 : ([serverId, 'works', 'list'] as const),
+        /** Works the track belongs to (GET /tracks/{id}/works, C11). */
+        ofTrack: (serverId: string, trackId: string) =>
+            [serverId, 'works', 'ofTrack', trackId] as const,
         root: (serverId: string) => [serverId, 'works'] as const,
         tracks: (serverId: string, workId: number | string) =>
             [serverId, 'works', 'detail', String(workId), 'tracks'] as const,
