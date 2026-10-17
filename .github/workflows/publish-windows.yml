@@ -1,6 +1,19 @@
-name: Publish Windows (Manual)
+name: Publish Windows
 
-on: workflow_dispatch
+on:
+    push:
+        branches:
+            - 032music
+        paths-ignore:
+            - '**.md'
+            - 'docs/**'
+            - '.scratch/**'
+    workflow_dispatch:
+
+# A newer push supersedes an in-flight build of the same release.
+concurrency:
+    group: publish-windows
+    cancel-in-progress: true
 
 jobs:
     publish:
@@ -22,6 +35,18 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            # electron-builder skips uploads to an already published release with the same version,
+            # so reopen it as a draft and let the build overwrite its assets.
+            - name: Reopen existing release as draft
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  tag="v$(node -p "require('./package.json').version")"
+                  if gh release view "$tag" >/dev/null 2>&1; then
+                    gh release edit "$tag" --draft=true
+                  fi
 
             - name: Build and Publish releases
               env:
