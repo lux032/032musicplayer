@@ -103,7 +103,17 @@ const SERVER_TYPES: Record<ServerType, ServerDetails> = {
     },
 };
 
-const ALL_SERVERS = Object.keys(SERVER_TYPES).map((serverType) => {
+// 032musicplayer only exposes the 032 Music add entry. Other backends stay supported
+// (SERVER_TYPES is still used for existing servers), just hidden from the picker.
+const VISIBLE_SERVER_TYPES: ServerType[] = [
+    // ServerType.JELLYFIN,
+    ServerType.MUSIC032,
+    // ServerType.NAVIDROME,
+    // ServerType.PLEX,
+    // ServerType.SUBSONIC,
+];
+
+const ALL_SERVERS = VISIBLE_SERVER_TYPES.map((serverType) => {
     const info = SERVER_TYPES[serverType];
     return {
         label: <ServerIconWithLabel icon={info.icon} label={info.name} />,
@@ -137,7 +147,7 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
             type:
                 (localSettings
                     ? localSettings.env.SERVER_TYPE
-                    : toServerType(window.SERVER_TYPE)) ?? ServerType.NAVIDROME,
+                    : toServerType(window.SERVER_TYPE)) ?? ServerType.MUSIC032,
             url: (localSettings ? localSettings.env.SERVER_URL : window.SERVER_URL) ?? 'https://',
             username: '',
         },
@@ -315,25 +325,27 @@ export const AddServerForm = ({ onCancel }: AddServerFormProps) => {
     return (
         <>
             <Stack>
-                {discovered.map((server) => (
-                    <Paper key={server.url} p="10px">
-                        <Group>
-                            <img height="32" src={SERVER_TYPES[server.type].icon} width="32" />
-                            <div
-                                onClick={() => fillServerDetails(server)}
-                                style={{ cursor: 'pointer' }}
-                            >
-                                <Text fw={700}>{server.name}</Text>
-                                <Text>
-                                    {t('form.addServer.discoveredServer', {
-                                        serverType: SERVER_TYPES[server.type].name,
-                                        serverUrl: server.url,
-                                    })}
-                                </Text>
-                            </div>
-                        </Group>
-                    </Paper>
-                ))}
+                {discovered
+                    .filter((server) => VISIBLE_SERVER_TYPES.includes(server.type))
+                    .map((server) => (
+                        <Paper key={server.url} p="10px">
+                            <Group>
+                                <img height="32" src={SERVER_TYPES[server.type].icon} width="32" />
+                                <div
+                                    onClick={() => fillServerDetails(server)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <Text fw={700}>{server.name}</Text>
+                                    <Text>
+                                        {t('form.addServer.discoveredServer', {
+                                            serverType: SERVER_TYPES[server.type].name,
+                                            serverUrl: server.url,
+                                        })}
+                                    </Text>
+                                </div>
+                            </Group>
+                        </Paper>
+                    ))}
             </Stack>
             <form onSubmit={handleSubmit}>
                 <Stack m={5} ref={focusTrapRef}>
