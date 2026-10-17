@@ -26,6 +26,8 @@ import { M032ArtistRef, M032Track } from '/@/shared/api/music032/music032-types'
 import { LibraryItem, ServerListItemWithCredential } from '/@/shared/types/domain-types';
 
 const PEOPLE_PREVIEW = 8;
+const WORKS_PREVIEW = 3;
+const WORK_TRACKS_PREVIEW = 3;
 const NO_TRACKS: M032Track[] = [];
 
 const artistPath = (id: number) =>
@@ -107,6 +109,8 @@ const workRelationLabel = (t: (key: string) => string, work: Music032AlbumWorkVi
 
 const WorkCard = ({ work }: { work: Music032AlbumWorkView }) => {
     const { t } = useTranslation();
+    const [showAllTracks, setShowAllTracks] = useState(false);
+    const tracks = showAllTracks ? work.tracks : work.tracks.slice(0, WORK_TRACKS_PREVIEW);
     const meta = [workTypeLongLabel(t, work.type), work.year > 0 ? String(work.year) : null]
         .filter(Boolean)
         .join(' · ');
@@ -128,7 +132,7 @@ const WorkCard = ({ work }: { work: Music032AlbumWorkView }) => {
             </Link>
             {work.tracks.length > 0 && (
                 <ul className={styles.workTracks}>
-                    {work.tracks.map((track) => (
+                    {tracks.map((track) => (
                         <li key={track.id}>
                             <span className={styles.trackRole}>{track.label}</span>
                             <span className={styles.trackTitle} title={track.title}>
@@ -138,7 +142,37 @@ const WorkCard = ({ work }: { work: Music032AlbumWorkView }) => {
                     ))}
                 </ul>
             )}
+            {work.tracks.length > WORK_TRACKS_PREVIEW && !showAllTracks && (
+                <button
+                    className={styles.more}
+                    onClick={() => setShowAllTracks(true)}
+                    type="button"
+                >
+                    {t('page.albumDetail.music032.showAllTracks', { count: work.tracks.length })}
+                </button>
+            )}
         </div>
+    );
+};
+
+const Works = ({ works }: { works: Music032AlbumWorkView[] }) => {
+    const { t } = useTranslation();
+    const [showAll, setShowAll] = useState(false);
+    if (works.length === 0) return null;
+    const shown = showAll ? works : works.slice(0, WORKS_PREVIEW);
+    return (
+        <Section title={`${t('page.albumDetail.music032.worksTitle')} (${works.length})`}>
+            <div className={styles.works}>
+                {shown.map((work) => (
+                    <WorkCard key={work.id} work={work} />
+                ))}
+            </div>
+            {works.length > WORKS_PREVIEW && !showAll && (
+                <button className={styles.more} onClick={() => setShowAll(true)} type="button">
+                    {t('page.albumDetail.music032.showAllWorks', { count: works.length })}
+                </button>
+            )}
+        </Section>
     );
 };
 
@@ -229,15 +263,7 @@ export const Music032AlbumInspector = ({
 
     return (
         <div className={styles.inspector}>
-            {works.length > 0 && (
-                <Section title={`${k('worksTitle')} (${works.length})`}>
-                    <div className={styles.works}>
-                        {works.map((work) => (
-                            <WorkCard key={work.id} work={work} />
-                        ))}
-                    </div>
-                </Section>
-            )}
+            <Works works={works} />
             <Section title={k('releaseInfo')}>
                 <FactList rows={release} />
             </Section>

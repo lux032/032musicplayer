@@ -550,6 +550,8 @@
                 "participantTracks_one": "{{count}} track",
                 "participantTracks_other": "{{count}} tracks",
                 "showAllPeople": "Show all {{count}}",
+                "showAllWorks": "Show all {{count}}",
+                "showAllTracks": "Show all {{count}} tracks",
                 "mediaInfo": "Media info",
                 "format": "Format",
                 "size": "Size",

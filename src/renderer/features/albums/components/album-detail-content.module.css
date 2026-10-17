@@ -118,9 +118,19 @@
     .metadata-column {
         position: sticky;
         top: calc(var(--theme-spacing-lg) + 4rem);
+        flex-flow: column nowrap;
+        align-items: stretch;
         align-self: start;
         width: 300px;
         max-height: calc(100vh - 90px - var(--theme-spacing-lg) - 4rem);
+        padding-right: 4px;
+        overflow: hidden auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+
+    .metadata-column > * {
+        flex: none;
     }
 }
 
