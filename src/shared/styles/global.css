@@ -39,6 +39,10 @@ select {
     font: inherit;
 }
 
+[lang|='zh'] {
+    font-family: var(--theme-content-font-family-zh, var(--theme-content-font-family));
+}
+
 button,
 select {
     text-transform: none;

@@ -16,6 +16,23 @@ import { getAppTheme } from '/@/shared/themes/app-theme';
 import { AppTheme, AppThemeConfiguration } from '/@/shared/themes/app-theme-types';
 import { FontType } from '/@/shared/types/types';
 
+// Simplified Chinese system fonts. Kept out of the default stack so Japanese text
+// keeps JP glyph forms; applied only to elements tagged lang="zh".
+const ZH_FONT_STACK =
+    '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC"';
+
+const setContentFontFamily = (primary: string) => {
+    const root = document.documentElement;
+    root.style.setProperty(
+        '--theme-content-font-family',
+        `${primary}, "Noto Sans JP", "Noto Sans Hebrew", sans-serif`,
+    );
+    root.style.setProperty(
+        '--theme-content-font-family-zh',
+        `${primary}, ${ZH_FONT_STACK}, "Noto Sans Hebrew", sans-serif`,
+    );
+};
+
 export const THEME_DATA = [
     { label: '032 Dark', type: 'dark', value: AppTheme.MUSIC032_DARK },
     { label: '032 Light', type: 'light', value: AppTheme.MUSIC032_LIGHT },
@@ -113,11 +130,7 @@ export const useAppTheme = (overrideTheme?: AppTheme) => {
 
     useEffect(() => {
         if (type === FontType.SYSTEM && system) {
-            const root = document.documentElement;
-            root.style.setProperty(
-                '--theme-content-font-family',
-                'dynamic-font, "Noto Sans JP", "Noto Sans Hebrew", sans-serif',
-            );
+            setContentFontFamily('dynamic-font');
 
             if (!textStyleRef.current) {
                 textStyleRef.current = document.createElement('style');
@@ -130,11 +143,7 @@ export const useAppTheme = (overrideTheme?: AppTheme) => {
                 src: local("${system}");
             }`;
         } else if (type === FontType.CUSTOM && custom) {
-            const root = document.documentElement;
-            root.style.setProperty(
-                '--theme-content-font-family',
-                'dynamic-font, "Noto Sans JP", "Noto Sans Hebrew", sans-serif',
-            );
+            setContentFontFamily('dynamic-font');
 
             if (!textStyleRef.current) {
                 textStyleRef.current = document.createElement('style');
@@ -152,11 +161,7 @@ export const useAppTheme = (overrideTheme?: AppTheme) => {
                 src: url("feishin:${custom}");
             }`;
         } else {
-            const root = document.documentElement;
-            root.style.setProperty(
-                '--theme-content-font-family',
-                `${builtIn}, "Noto Sans JP", "Noto Sans Hebrew", sans-serif`,
-            );
+            setContentFontFamily(builtIn);
         }
     }, [builtIn, custom, system, type]);
 

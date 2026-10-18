@@ -3,6 +3,7 @@ import { ComponentPropsWithoutRef, memo, useMemo } from 'react';
 
 import styles from './karaoke-lyric-line.module.css';
 
+import { detectCjkLang } from '/@/renderer/features/lyrics/api/lyrics-lang';
 import { testRtl } from '/@/renderer/features/lyrics/api/lyrics-rtl';
 import { splitWordCues } from '/@/renderer/features/lyrics/api/split-word-cue';
 import { sanitize } from '/@/renderer/utils/sanitize';
@@ -160,7 +161,7 @@ const renderOverlayCueLineRow = (
     variant: 'overlay-generic' | 'overlay-pronunciation' | 'overlay-translation',
     lineClassName: string,
 ) => (
-    <span className={lineClassName}>
+    <span className={lineClassName} lang={detectCjkLang(cueLine.value)}>
         {renderWordSpans(cueLine, lineIndex, cueLineIndex, false, variant)}
     </span>
 );
@@ -229,6 +230,7 @@ export const KaraokeLyricLine = memo(
                                             ? `karaoke-anchor-${lineIndex}`
                                             : undefined
                                     }
+                                    lang={detectCjkLang(cueLine.value)}
                                 >
                                     {renderWordSpans(
                                         cueLine,
@@ -282,6 +284,7 @@ export const KaraokeLyricLine = memo(
                         <span
                             className={styles.translationLine}
                             dangerouslySetInnerHTML={{ __html: sanitize(translatedText) }}
+                            lang={detectCjkLang(translatedText)}
                         />
                     )}
                     {extraOverlays?.map((overlay, overlayIndex) => {
@@ -292,6 +295,7 @@ export const KaraokeLyricLine = memo(
                                 <span
                                     className={styles.overlayLine}
                                     key={`extra-overlay-${overlayIndex}-cue-${cueLineIndex}`}
+                                    lang={detectCjkLang(cueLine.value)}
                                 >
                                     {renderWordSpans(
                                         cueLine,
@@ -310,6 +314,7 @@ export const KaraokeLyricLine = memo(
                                     className={styles.overlayLine}
                                     dangerouslySetInnerHTML={{ __html: sanitize(overlay.text) }}
                                     key={`extra-overlay-${overlayIndex}`}
+                                    lang={detectCjkLang(overlay.text)}
                                 />
                             );
                         }

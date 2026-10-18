@@ -3,6 +3,7 @@ import { ComponentPropsWithoutRef, memo, useMemo } from 'react';
 
 import styles from './lyric-line.module.css';
 
+import { detectCjkLang } from '/@/renderer/features/lyrics/api/lyrics-lang';
 import { sanitize } from '/@/renderer/utils/sanitize';
 import { Box } from '/@/shared/components/box/box';
 import { Stack } from '/@/shared/components/stack/stack';
@@ -39,7 +40,11 @@ export const LyricLine = memo(
             <Box className={clsx(styles.lyricLine, className)} style={style} {...props}>
                 <Stack gap={0}>
                     {lines.map((line, index) => (
-                        <span dangerouslySetInnerHTML={{ __html: sanitize(line) }} key={index} />
+                        <span
+                            dangerouslySetInnerHTML={{ __html: sanitize(line) }}
+                            key={index}
+                            lang={detectCjkLang(line)}
+                        />
                     ))}
                     {romajiText && (
                         <span
@@ -48,7 +53,10 @@ export const LyricLine = memo(
                         />
                     )}
                     {translatedText && translatedText !== text && (
-                        <span dangerouslySetInnerHTML={{ __html: sanitize(translatedText) }} />
+                        <span
+                            dangerouslySetInnerHTML={{ __html: sanitize(translatedText) }}
+                            lang={detectCjkLang(translatedText)}
+                        />
                     )}
                 </Stack>
             </Box>
